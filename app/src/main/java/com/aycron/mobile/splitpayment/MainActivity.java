@@ -1,0 +1,219 @@
+package com.aycron.mobile.splitpayment;
+
+import android.content.ContentResolver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.graphics.Bitmap;
+import android.media.MediaScannerConnection;
+import android.net.Uri;
+import android.os.Environment;
+import android.provider.MediaStore;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.util.Log;
+import android.util.SparseArray;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.aycron.mobile.splitpayment.exceptions.ExceptionHandler;
+import com.aycron.mobile.splitpayment.helpers.MarshMallowPermission;
+import com.google.android.gms.vision.Frame;
+import com.google.android.gms.vision.text.TextBlock;
+import com.google.android.gms.vision.text.TextRecognizer;
+
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+public class MainActivity extends AppCompatActivity  implements OnClickListener {
+
+    private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
+    public static final int MEDIA_TYPE_IMAGE = 1;
+    private static final String TAG = "SplitPaymentActivity";
+    private Uri fileUri;
+    Bitmap bitmapPhoto;
+    Button takePhoto;
+    ImageView imageTaken;
+    Button processPhoto;
+    TextView resultText;
+    MarshMallowPermission marshMallowPermission = new MarshMallowPermission(this);
+    private static final String splitPaymentImageFolder = "SplitPaymentImages";
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler(this));
+        takePhoto = (Button) findViewById(R.id.takePhoto);
+        takePhoto.setOnClickListener(this);
+        imageTaken = (ImageView) findViewById(R.id.imgTaken);
+        processPhoto = (Button) findViewById(R.id.processPhoto);
+        processPhoto.setOnClickListener(this);
+        resultText = (TextView) findViewById(R.id.txtResult);
+
+    }
+
+    @Override
+    public void onClick(View view) {
+
+        switch (view.getId()){
+            case R.id.takePhoto:
+                getPhotoFromCamera();
+                break;
+
+            case R.id.processPhoto:
+                uploadPhoto();
+                break;
+        }
+
+    }
+
+
+    public void uploadPhoto() {
+
+        String s = "";
+        SparseArray<TextBlock> textResults = GetRecognizedText(bitmapPhoto);
+        for(int i = 0; i < textResults.size(); i++) {
+            int key = textResults.keyAt(i);
+            TextBlock txtBlock = (TextBlock) textResults.get(key);
+            s = s + txtBlock.getValue() + "\n";
+        }
+
+        resultText.setText(s);
+
+    }
+
+    public void getPhotoFromCamera() {
+
+        if (!marshMallowPermission.checkPermissionForCamera()) {
+            marshMallowPermission.requestPermissionForCamera();
+        } else {
+            if (!marshMallowPermission.checkPermissionForExternalStorage()) {
+                marshMallowPermission.requestPermissionForExternalStorage();
+            } else {
+                // create Intent to take a picture and return control to the calling application
+                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
+                fileUri = getOutputMediaFileUri(MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE); // create a file to save the image
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri); // set the image file name
+
+                // start the image capture Intent
+                try {
+                    startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
+
+                } catch (Exception ex){
+                    String s = ex.getMessage();
+                }
+            }
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
+
+                // Image captured and saved to fileUri specified in the Intent
+                MediaScannerConnection.scanFile(this, new String[] { fileUri.getPath() }, null,
+                        new MediaScannerConnection.OnScanCompletedListener() {
+                            @Override
+                            public void onScanCompleted(String path, Uri uri) {
+                                Log.i(TAG, "Scanned " + path);
+                            }
+                        });
+                Toast.makeText(this, "Image saved", Toast.LENGTH_LONG).show();
+
+
+                this.getContentResolver().notifyChange(fileUri, null);
+                ContentResolver cr = this.getContentResolver();
+
+                try
+                {
+                    bitmapPhoto = android.provider.MediaStore.Images.Media.getBitmap(cr, fileUri);
+                    imageTaken.setImageBitmap(bitmapPhoto);
+                    processPhoto.setEnabled(true);
+                }
+                catch (Exception e)
+                {
+                    Toast.makeText(this, "Failed to load", Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, "Failed to load", e);
+                }
+
+
+            } else if (resultCode == RESULT_CANCELED) {
+                Toast.makeText(this, "Image capture cancelled", Toast.LENGTH_LONG).show();
+            } else {
+                Toast.makeText(this, "Image capture failed", Toast.LENGTH_LONG).show();
+                processPhoto.setEnabled(false);
+            }
+        }
+    }
+
+    /** Create a file Uri for saving an image or video */
+    private static Uri getOutputMediaFileUri(int type){
+        return Uri.fromFile(getOutputMediaFile(type));
+    }
+
+    /** Create a File for saving an image or video */
+    private static File getOutputMediaFile(int type){
+        // To be safe, you should check that the SDCard is mounted
+        // using Environment.getExternalStorageState() before doing this.
+
+       String storageState =  Environment.getExternalStorageState();
+        File mediaFile = null;
+
+        if (Environment.MEDIA_MOUNTED.equals(storageState)) {
+
+            String root = Environment.getExternalStorageDirectory().toString();
+            //String root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
+            File mediaStorageDir = new File(root + "/" + splitPaymentImageFolder);
+            if (!mediaStorageDir.exists()) {
+                mediaStorageDir.mkdirs();
+            }
+
+            // Create a media file name
+            String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+            if (type == MEDIA_TYPE_IMAGE) {
+                mediaFile = new File(mediaStorageDir.getPath() + File.separator +
+                        "IMG_" + timeStamp + ".jpg");
+            } else {
+                return null;
+            }
+        }
+
+        return mediaFile;
+    }
+
+    public SparseArray<TextBlock> GetRecognizedText(Bitmap myBitmap){
+
+        SparseArray<TextBlock> text = new SparseArray<TextBlock>();
+
+        Context context = getApplicationContext();
+
+        TextRecognizer textRecognizer = new TextRecognizer.Builder(context).build();
+
+        if (!textRecognizer.isOperational()) {
+            Log.w(TAG, "Detector dependencies are not yet available.");
+
+            IntentFilter lowstorageFilter = new IntentFilter(Intent.ACTION_DEVICE_STORAGE_LOW);
+            boolean hasLowStorage = registerReceiver(null, lowstorageFilter) != null;
+
+            if (hasLowStorage) {
+                Toast.makeText(this, "Ocr dependencies cannot be downloaded due to low device storage", Toast.LENGTH_LONG).show();
+                Log.w(TAG, "Ocr dependencies cannot be downloaded due to low device storage");
+            }
+        }
+
+        Frame frame = (new Frame.Builder()).setBitmap(myBitmap).build();
+        text = textRecognizer.detect(frame);
+
+      return text;
+    }
+
+
+}
