@@ -4,7 +4,11 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
+import android.media.ExifInterface;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Environment;
@@ -33,11 +37,14 @@ import java.util.Date;
 public class MainActivity extends AppCompatActivity  implements OnClickListener {
 
     private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
+    private static final int RESULT_LOAD_IMAGE = 200;
+
     public static final int MEDIA_TYPE_IMAGE = 1;
     private static final String TAG = "SplitPaymentActivity";
     private Uri fileUri;
     Bitmap bitmapPhoto;
     Button takePhoto;
+    Button selectPhoto;
     ImageView imageTaken;
     Button processPhoto;
     TextView resultText;
@@ -55,6 +62,8 @@ public class MainActivity extends AppCompatActivity  implements OnClickListener 
         processPhoto = (Button) findViewById(R.id.processPhoto);
         processPhoto.setOnClickListener(this);
         resultText = (TextView) findViewById(R.id.txtResult);
+        selectPhoto = (Button) findViewById(R.id.selectPhoto);
+        selectPhoto.setOnClickListener(this);
 
     }
 
@@ -69,6 +78,11 @@ public class MainActivity extends AppCompatActivity  implements OnClickListener 
             case R.id.processPhoto:
                 uploadPhoto();
                 break;
+
+            case R.id.selectPhoto:
+                Intent i = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                startActivityForResult(i, RESULT_LOAD_IMAGE);
+                break;
         }
 
     }
@@ -80,7 +94,7 @@ public class MainActivity extends AppCompatActivity  implements OnClickListener 
         SparseArray<TextBlock> textResults = GetRecognizedText(bitmapPhoto);
         for(int i = 0; i < textResults.size(); i++) {
             int key = textResults.keyAt(i);
-            TextBlock txtBlock = (TextBlock) textResults.get(key);
+            TextBlock txtBlock = textResults.get(key);
             s = s + txtBlock.getValue() + "\n";
         }
 
@@ -135,6 +149,12 @@ public class MainActivity extends AppCompatActivity  implements OnClickListener 
                 try
                 {
                     bitmapPhoto = android.provider.MediaStore.Images.Media.getBitmap(cr, fileUri);
+                    ExifInterface exif = new ExifInterface(fileUri.getPath());
+                    String exifOrientation = exif.getAttribute(ExifInterface.TAG_ORIENTATION);
+                    Toast.makeText(this, exifOrientation, Toast.LENGTH_SHORT).show();
+                    //if(exifOrientation.equals("0")) {
+                        fixOrientation(90);
+                    //}
                     imageTaken.setImageBitmap(bitmapPhoto);
                     processPhoto.setEnabled(true);
                 }
@@ -151,6 +171,33 @@ public class MainActivity extends AppCompatActivity  implements OnClickListener 
                 Toast.makeText(this, "Image capture failed", Toast.LENGTH_LONG).show();
                 processPhoto.setEnabled(false);
             }
+        }else if (requestCode == RESULT_LOAD_IMAGE) {
+            if (resultCode == RESULT_OK && null != data) {
+                Uri selectedImage = data.getData();
+                String[] filePathColumn = { MediaStore.Images.Media.DATA };
+
+                Cursor cursor = getContentResolver().query(selectedImage,
+                        filePathColumn, null, null, null);
+                cursor.moveToFirst();
+
+                int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+                String picturePath = cursor.getString(columnIndex);
+                cursor.close();
+
+                // String picturePath contains the path of selected Image
+                bitmapPhoto = BitmapFactory.decodeFile(picturePath);
+                fixOrientation(90);
+                imageTaken.setImageBitmap(bitmapPhoto);
+                processPhoto.setEnabled(true);
+            }
+        }
+    }
+
+    public void fixOrientation(int degrees) {
+        if (bitmapPhoto.getWidth() > bitmapPhoto.getHeight()) {
+            Matrix matrix = new Matrix();
+            matrix.postRotate(degrees);
+            bitmapPhoto = Bitmap.createBitmap(bitmapPhoto , 0, 0, bitmapPhoto.getWidth(), bitmapPhoto.getHeight(), matrix, true);
         }
     }
 
