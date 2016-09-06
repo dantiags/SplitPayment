@@ -93,9 +93,7 @@ public class MainActivity extends AppCompatActivity  implements OnClickListener 
         String s = "";
         SparseArray<TextBlock> textResults = GetRecognizedText(bitmapPhoto);
         for(int i = 0; i < textResults.size(); i++) {
-            int key = textResults.keyAt(i);
-            TextBlock txtBlock = textResults.get(key);
-            s = s + txtBlock.getValue() + "\n";
+            s = s + textResults.valueAt(i).getValue() + "\n";
         }
 
         resultText.setText(s);
