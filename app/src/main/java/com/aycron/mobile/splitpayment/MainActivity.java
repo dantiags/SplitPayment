@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
+import android.graphics.RectF;
 import android.media.ExifInterface;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
@@ -32,7 +33,13 @@ import com.google.android.gms.vision.text.TextRecognizer;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class MainActivity extends AppCompatActivity  implements OnClickListener {
 
@@ -91,13 +98,12 @@ public class MainActivity extends AppCompatActivity  implements OnClickListener 
     public void uploadPhoto() {
 
         String s = "";
-        SparseArray<TextBlock> textResults = GetRecognizedText(bitmapPhoto);
-        for(int i = 0; i < textResults.size(); i++) {
-            s = s + textResults.valueAt(i).getValue() + "\n";
+        List<String> textResults = GetRecognizedText(bitmapPhoto);
+
+        for (String text : textResults) {
+            s = s + text + "\n\n";
         }
-
         resultText.setText(s);
-
     }
 
     public void getPhotoFromCamera() {
@@ -234,10 +240,9 @@ public class MainActivity extends AppCompatActivity  implements OnClickListener 
         return mediaFile;
     }
 
-    public SparseArray<TextBlock> GetRecognizedText(Bitmap myBitmap){
+    public List<String> GetRecognizedText(Bitmap myBitmap){
 
-        SparseArray<TextBlock> text = new SparseArray<TextBlock>();
-
+        List<String> results = new ArrayList<>();
         Context context = getApplicationContext();
 
         TextRecognizer textRecognizer = new TextRecognizer.Builder(context).build();
@@ -255,9 +260,22 @@ public class MainActivity extends AppCompatActivity  implements OnClickListener 
         }
 
         Frame frame = (new Frame.Builder()).setBitmap(myBitmap).build();
-        text = textRecognizer.detect(frame);
+        SparseArray<TextBlock> detectedTextBlocks = textRecognizer.detect(frame);
 
-      return text;
+        TreeMap<Float, Integer> sortedIndexes = new TreeMap<>();
+        TextBlock block;
+        for(int i = 0; i < detectedTextBlocks.size(); i++) {
+            block = detectedTextBlocks.get(detectedTextBlocks.keyAt(i));
+            RectF rect = new RectF(block.getBoundingBox());
+            sortedIndexes.put(rect.top,detectedTextBlocks.keyAt(i));
+        }
+
+        for (Float index : sortedIndexes.keySet()) {
+            results.add(detectedTextBlocks.get(sortedIndexes.get(index)).getValue());
+        }
+
+
+      return results;
     }
 
 
