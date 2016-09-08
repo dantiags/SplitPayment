@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "splitpayment",
+  "private_key_id": "8b0b2ed5dff2ad0db69f5af5315574510403b888",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQCdgZSvNioE+fZL\nm9OiL3x9vvXIKB4Uwdx1X2c4dvv7kfaQhzqpi4KwQBXqYpMIbe5ASyZ1vfQPuhXh\nlk5CerdWt1UMKhLScKsZoJWXGLWxmHnyVLcsxMeKxyDYbiFrqDThyAyfo9YcIsLY\nayfhXEWDBzbPGBKu/bCuhZ7zw2PBis1Ezl+Wf0aySuSf/F/05Fs9+1uW8gH8f5Fn\nZ3h4IhIUhXE00gA3IEK8vzPnOZN5xCH6CHMdrKRFmEqCBo1aQkyTtWsPOz+7YUTn\nATf23lOMjx8lCGolkkmPgsBjGoDFyDRvSWICBhcREPs8qwJahVjso9UUgTeRd49g\nICVnGQIBAgMBAAECggEANXdyaJPjabMMl5f7HHgwM2NqfZqYs4UneDR9jp5dZYWk\nBGXTVRCFuZzXk6wIq3jdwreAA8IKongRy3VBdbHAoNA1L57sqsESY+2uOg9qRjIz\nWz7Eu47FCegUz0N7VtdPtEE7f8mW+hAWwm6FqCuxcQw239AVL4/wtR2o2qi+KUmT\nioldqFog1Lu8oB7k+5d0pHZobFhg+8OBFePH36QJVnHEwBAoKYueVWu2hYbniaM+\nNqiQ4p/CmRw2TbmnNyEDWu4mU/Az6Pb0NLZ7486wuNni0jW6dZT/ijqwbyMzwe5k\nlTMjr3dWXTE6OG12Nf2r0DU4mOt8+FKkViUyJN+e0QKBgQDOGb7+oBJ7wzMLQ1/3\nUGv/nSXIIsxC8FAtwF/o3CwG4ypVXFnuabWrGw1/PSUvYjrboZ9fXoLkqpB6iaF0\nNT2OuHdy6MWmJHllx1igKPSen/cQqSFhM/VTwgSq+MR7b0icf0GNjC/ZPfXFhq0N\nM0dcnrzKBJ4nPFUi43tuVagEPQKBgQDDo+vDB6pI8GYAazIyRulst6QSzm9alp9M\nWI1biNBwRChKdotIrvuA5JuZ4mnyMA9/Af6Aw3Kk0YH0y0C2lpSEpLcdJQ+XNJ/k\na7l6g+dUhbxjc6sk2FmA9M9UAT7HDz6JnapbxxPFtOqKjqcVKTkER7kHPXRR7+Yb\na9weacjdFQKBgQC7iwoVwauQG0wzj5egAPqFm4Zp2+BreSo8t7WOu+sESWqYSnU7\nUc4SaYeapRVVTNmqSiQwMFyDoAHgv6S/jkL5wDpRwic4zC/7wa6P7zTJs16rNnw9\na35uPTrqKX0BpX45ikMofsx7rroaiDaosGTbj0bTvef8ZBZErSQAfslpMQKBgQCc\nCGenc7yXUcw4d0ZgnPfcspZUPXrISCsiq9mJ8JM1htaPlP4/aPfD9BA56j9PXo9t\nX3zI25ja5RF92IFzXqNzKx+0SfOmR91iQ5x5nyvn2IXI197ekwLHe/jDaf7Uqk7Z\nWPsfGaamX0VUXrPZh7gmtsFWief01Z2zrxGu2/XMhQKBgQCIJYhHZeYUkT70y4el\nZkS08J4fdwunwyz1xyRvID4TaHYjScLZXDjwCoqfwQyElQXHEkBTin0bNAthep4V\n0i+HDywKzVthU0e+eJ+atVOzCTOz4A/fWq1rigYbjzTBtokHEOzOAFMWLkvbHw3r\nBn3FG0azELrEhpnFfvrZg/VbCQ==\n-----END PRIVATE KEY-----\n",
+  "client_email": "adminappsplitpayment@splitpayment.iam.gserviceaccount.com",
+  "client_id": "113174146893734886824",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://accounts.google.com/o/oauth2/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/adminappsplitpayment%40splitpayment.iam.gserviceaccount.com"
+}

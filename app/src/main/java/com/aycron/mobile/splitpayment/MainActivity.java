@@ -17,7 +17,6 @@ import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.util.SparseArray;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -26,20 +25,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.aycron.mobile.splitpayment.exceptions.ExceptionHandler;
+import com.aycron.mobile.splitpayment.helpers.GoogleVisionHelper;
+import com.aycron.mobile.splitpayment.helpers.LocalGoogleOCRHelper;
 import com.aycron.mobile.splitpayment.helpers.MarshMallowPermission;
-import com.google.android.gms.vision.Frame;
-import com.google.android.gms.vision.text.TextBlock;
-import com.google.android.gms.vision.text.TextRecognizer;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 public class MainActivity extends AppCompatActivity  implements OnClickListener {
 
@@ -49,6 +41,7 @@ public class MainActivity extends AppCompatActivity  implements OnClickListener 
     public static final int MEDIA_TYPE_IMAGE = 1;
     private static final String TAG = "SplitPaymentActivity";
     private Uri fileUri;
+    private String selectedImagePath;
     Bitmap bitmapPhoto;
     Button takePhoto;
     Button selectPhoto;
@@ -83,7 +76,9 @@ public class MainActivity extends AppCompatActivity  implements OnClickListener 
                 break;
 
             case R.id.processPhoto:
-                uploadPhoto();
+                //String s = LocalGoogleOCRHelper.ProcessImage(this, bitmapPhoto);
+                String s = GoogleVisionHelper.UploadImage(selectedImagePath);
+                resultText.setText(s);
                 break;
 
             case R.id.selectPhoto:
@@ -95,16 +90,7 @@ public class MainActivity extends AppCompatActivity  implements OnClickListener 
     }
 
 
-    public void uploadPhoto() {
 
-        String s = "";
-        List<String> textResults = GetRecognizedText(bitmapPhoto);
-
-        for (String text : textResults) {
-            s = s + text + "\n\n";
-        }
-        resultText.setText(s);
-    }
 
     public void getPhotoFromCamera() {
 
@@ -193,6 +179,7 @@ public class MainActivity extends AppCompatActivity  implements OnClickListener 
                 fixOrientation(90);
                 imageTaken.setImageBitmap(bitmapPhoto);
                 processPhoto.setEnabled(true);
+                this.selectedImagePath = picturePath;
             }
         }
     }
@@ -239,44 +226,5 @@ public class MainActivity extends AppCompatActivity  implements OnClickListener 
 
         return mediaFile;
     }
-
-    public List<String> GetRecognizedText(Bitmap myBitmap){
-
-        List<String> results = new ArrayList<>();
-        Context context = getApplicationContext();
-
-        TextRecognizer textRecognizer = new TextRecognizer.Builder(context).build();
-
-        if (!textRecognizer.isOperational()) {
-            Log.w(TAG, "Detector dependencies are not yet available.");
-
-            IntentFilter lowstorageFilter = new IntentFilter(Intent.ACTION_DEVICE_STORAGE_LOW);
-            boolean hasLowStorage = registerReceiver(null, lowstorageFilter) != null;
-
-            if (hasLowStorage) {
-                Toast.makeText(this, "Ocr dependencies cannot be downloaded due to low device storage", Toast.LENGTH_LONG).show();
-                Log.w(TAG, "Ocr dependencies cannot be downloaded due to low device storage");
-            }
-        }
-
-        Frame frame = (new Frame.Builder()).setBitmap(myBitmap).build();
-        SparseArray<TextBlock> detectedTextBlocks = textRecognizer.detect(frame);
-
-        TreeMap<Float, Integer> sortedIndexes = new TreeMap<>();
-        TextBlock block;
-        for(int i = 0; i < detectedTextBlocks.size(); i++) {
-            block = detectedTextBlocks.get(detectedTextBlocks.keyAt(i));
-            RectF rect = new RectF(block.getBoundingBox());
-            sortedIndexes.put(rect.top,detectedTextBlocks.keyAt(i));
-        }
-
-        for (Float index : sortedIndexes.keySet()) {
-            results.add(detectedTextBlocks.get(sortedIndexes.get(index)).getValue());
-        }
-
-
-      return results;
-    }
-
 
 }

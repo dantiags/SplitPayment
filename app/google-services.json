@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "1031807472198",
+    "project_id": "splitpayment"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1031807472198:android:abbbb43b3d257f4e",
+        "android_client_info": {
+          "package_name": "com.aycron.mobile.splitpayment"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1031807472198-jq8m0h15q5nfounvtge9en64rtceh0v2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.aycron.mobile.splitpayment",
+            "certificate_hash": "8B0B2ED5DFF2AD0DB69F5AF5315574510403B888"
+          }
+        },
+        {
+          "client_id": "1031807472198-7cj7ehk5aq1v97v8if6f5vatsmgh1gom.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBlbgioS-CR_z00DmljfCBXOMRBiiVDnLE"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
