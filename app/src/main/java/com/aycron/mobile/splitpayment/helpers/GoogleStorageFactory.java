@@ -1,5 +1,8 @@
 package com.aycron.mobile.splitpayment.helpers;
 
+import android.content.Context;
+import android.net.Uri;
+
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.HttpTransport;
@@ -7,6 +10,10 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.StorageScopes;
+
+import net.openid.appauth.AuthorizationRequest;
+import net.openid.appauth.AuthorizationService;
+import net.openid.appauth.AuthorizationServiceConfiguration;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -19,14 +26,46 @@ public class GoogleStorageFactory {
     private static String STORAGE_NAME = "SplitPayment";
     private static Storage instance = null;
 
-    public static synchronized Storage getService() throws IOException, GeneralSecurityException {
+    public static synchronized Storage getService(Context context) throws IOException, GeneralSecurityException {
         if (instance == null) {
-            instance = buildService();
+            instance = buildService(context);
         }
         return instance;
     }
 
-    private static Storage buildService() throws IOException, GeneralSecurityException {
+    private static Storage buildService(Context context) throws IOException, GeneralSecurityException {
+
+        AuthorizationServiceConfiguration serviceConfiguration = new AuthorizationServiceConfiguration(
+                Uri.parse("https://accounts.google.com/o/oauth2/auth") /* auth endpoint */,
+                Uri.parse("https://www.googleapis.com/oauth2/v4/token") /* token endpoint */
+        );
+
+        String clientId = "adminappsplitpayment@splitpayment.iam.gserviceaccount.com";
+        Uri redirectUri = Uri.parse("127.0.0.1");
+        AuthorizationRequest.Builder builder = new AuthorizationRequest.Builder(
+                serviceConfiguration,
+                clientId,
+                AuthorizationRequest.RESPONSE_TYPE_CODE,
+                redirectUri
+        );
+        builder.setScopes("https://www.googleapis.com/auth/devstorage.full_control");
+        AuthorizationRequest request = builder.build();
+
+        AuthorizationService authorizationService = new AuthorizationService(context);
+
+        String action = "com.google.codelabs.appauth.HANDLE_AUTHORIZATION_RESPONSE";
+        authorizationService.performAuthorizationRequest(request);
+
+
+
+
+
+
+
+
+
+
+
         HttpTransport transport = new com.google.api.client.http.javanet.NetHttpTransport();
         JsonFactory jsonFactory = new JacksonFactory();
         GoogleCredential credential = GoogleCredential.getApplicationDefault(transport, jsonFactory);
@@ -44,6 +83,8 @@ public class GoogleStorageFactory {
                 .setApplicationName(STORAGE_NAME)
                 .build();
     }
+
+
 
 /*
     function callAuthorizedGoogleApi(callbackFunction, args) {

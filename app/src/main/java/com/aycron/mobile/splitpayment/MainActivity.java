@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity  implements OnClickListener 
 
             case R.id.processPhoto:
                 //String s = LocalGoogleOCRHelper.ProcessImage(this, bitmapPhoto);
-                String s = GoogleVisionHelper.UploadImage(selectedImagePath);
+                String s = GoogleVisionHelper.UploadImage(this,selectedImagePath);
                 resultText.setText(s);
                 break;
 

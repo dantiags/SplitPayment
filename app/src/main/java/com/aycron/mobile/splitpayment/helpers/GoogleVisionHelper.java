@@ -1,5 +1,7 @@
 package com.aycron.mobile.splitpayment.helpers;
 
+import android.app.Activity;
+
 import com.google.api.client.http.InputStreamContent;
 import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.model.ObjectAccessControl;
@@ -19,7 +21,7 @@ public class GoogleVisionHelper {
 
     private static String BUCKET_NAME = "splitpayment.appspot.com";
 
-    public static String UploadImage(String path){
+    public static String UploadImage(Activity activity, String  path){
         String s ="";
         try {
 
@@ -52,7 +54,7 @@ public class GoogleVisionHelper {
                         .setContentDisposition("attachment");
             }
 
-            Storage storage = GoogleStorageFactory.getService();
+            Storage storage = GoogleStorageFactory.getService(activity.getApplicationContext());
 
             Storage.Objects.Insert insertObject = storage.objects().insert(BUCKET_NAME, objectMetadata,
                     mediaContent);
