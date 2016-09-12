@@ -1,23 +1,21 @@
 package com.aycron.mobile.splitpayment.helpers;
 
 import android.content.Context;
-import android.net.Uri;
 
+import com.aycron.mobile.splitpayment.MainActivity;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.StorageScopes;
 
-import net.openid.appauth.AuthorizationRequest;
-import net.openid.appauth.AuthorizationService;
-import net.openid.appauth.AuthorizationServiceConfiguration;
-
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.GeneralSecurityException;
-import java.util.Collection;
+import java.util.ArrayList;
 
 /**
  * Created by carlos.dantiags on 8/9/2016.
@@ -28,16 +26,100 @@ public class GoogleStorageFactory {
 
     public static synchronized Storage getService(Context context) throws IOException, GeneralSecurityException {
         if (instance == null) {
-            instance = buildService(context);
+            try {
+                buildService(context);
+            }catch (InterruptedException e){
+                e.printStackTrace();
+            }
         }
         return instance;
     }
 
-    private static Storage buildService(Context context) throws IOException, GeneralSecurityException {
+
+    private static void buildService(final Context context) throws IOException, GeneralSecurityException, InterruptedException {
+        Thread thread = new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                try
+                {
+
+                    // Directory to store user credentials for this application;
+                    //dataStoreDir = new File(appConfig.appDirectoryOnDevice);
+
+                    // Instance of the JSON factory
+                    JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
+
+                    // Instance of the scopes required
+                    ArrayList<String> scopes = new ArrayList<>();
+                    scopes.add(StorageScopes.CLOUD_PLATFORM);
+
+                    // Http transport creation
+                    //httpTransport = AndroidHttp.newCompatibleTransport();
+                    HttpTransport httpTransport = new com.google.api.client.http.javanet.NetHttpTransport();
+
+                    java.io.File licenseFile = getSecretFile(context);
+                    GoogleCredential credential = new GoogleCredential.Builder()
+                            .setTransport(httpTransport)
+                            .setJsonFactory(jsonFactory)
+                            .setServiceAccountId("adminappsplitpayment@splitpayment.iam.gserviceaccount.com")
+                            .setServiceAccountScopes(scopes)
+                            .setServiceAccountPrivateKeyFromP12File(licenseFile)
+                            .build();
+
+                    com.google.api.services.storage.Storage.Builder builder = new com.google.api.services.storage.Storage.Builder(httpTransport, jsonFactory, credential);
+                    builder.setApplicationName(STORAGE_NAME);
+                    com.google.api.services.storage.Storage client = builder.build();
+
+                    instance =  client;
+                }
+                catch (GeneralSecurityException e)
+                {
+                    e.printStackTrace();
+                }
+                catch (IOException e)
+                {
+                    e.printStackTrace();
+                }
+            }
+        });
+        thread.start();
+        thread.join();
+    }
+
+    public static java.io.File getSecretFile(Context context)
+    {
+        File f = new File(context.getCacheDir()+ "/" + "SplitPayment_secret.p12");
+        if (f.exists())
+        {
+            f.delete();
+        }
+        try
+        {
+            InputStream is = context.getAssets().open("SplitPayment_secret.p12");
+            int size = is.available();
+            byte[] buffer = new byte[size];
+            is.read(buffer);
+            is.close();
+
+            FileOutputStream fos = new FileOutputStream(f);
+            fos.write(buffer);
+            fos.close();
+        }
+        catch (Exception e)
+        {
+            throw new RuntimeException(e);
+        }
+        return f;
+    }
+
+
+    /*private static Storage buildService(Context context) throws IOException, GeneralSecurityException {
 
         AuthorizationServiceConfiguration serviceConfiguration = new AuthorizationServiceConfiguration(
-                Uri.parse("https://accounts.google.com/o/oauth2/auth") /* auth endpoint */,
-                Uri.parse("https://www.googleapis.com/oauth2/v4/token") /* token endpoint */
+                Uri.parse("https://accounts.google.com/o/oauth2/auth") *//* auth endpoint *//*,
+                Uri.parse("https://www.googleapis.com/oauth2/v4/token") *//* token endpoint *//*
         );
 
         String clientId = "adminappsplitpayment@splitpayment.iam.gserviceaccount.com";
@@ -54,7 +136,7 @@ public class GoogleStorageFactory {
         AuthorizationService authorizationService = new AuthorizationService(context);
 
         String action = "com.google.codelabs.appauth.HANDLE_AUTHORIZATION_RESPONSE";
-        authorizationService.performAuthorizationRequest(request);
+        //authorizationService.performAuthorizationRequest()
 
 
 
@@ -85,7 +167,7 @@ public class GoogleStorageFactory {
     }
 
 
-
+*/
 /*
     function callAuthorizedGoogleApi(callbackFunction, args) {
 

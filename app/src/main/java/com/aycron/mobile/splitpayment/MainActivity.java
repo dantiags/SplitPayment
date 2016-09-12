@@ -28,6 +28,7 @@ import com.aycron.mobile.splitpayment.exceptions.ExceptionHandler;
 import com.aycron.mobile.splitpayment.helpers.GoogleVisionHelper;
 import com.aycron.mobile.splitpayment.helpers.LocalGoogleOCRHelper;
 import com.aycron.mobile.splitpayment.helpers.MarshMallowPermission;
+import com.aycron.mobile.splitpayment.tasks.UploadImageTask;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -67,6 +68,12 @@ public class MainActivity extends AppCompatActivity  implements OnClickListener 
 
     }
 
+
+    public TextView getResultText() {
+        return resultText;
+    }
+
+
     @Override
     public void onClick(View view) {
 
@@ -77,8 +84,11 @@ public class MainActivity extends AppCompatActivity  implements OnClickListener 
 
             case R.id.processPhoto:
                 //String s = LocalGoogleOCRHelper.ProcessImage(this, bitmapPhoto);
-                String s = GoogleVisionHelper.UploadImage(this,selectedImagePath);
-                resultText.setText(s);
+                //String s = GoogleVisionHelper.UploadImage(this,selectedImagePath);
+                //resultText.setText(s);
+                Object[] params = {this,selectedImagePath};
+                new UploadImageTask().execute(params);
+
                 break;
 
             case R.id.selectPhoto:
