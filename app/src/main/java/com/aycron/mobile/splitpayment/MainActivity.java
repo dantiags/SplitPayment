@@ -48,6 +48,7 @@ public class MainActivity extends AppCompatActivity  implements OnClickListener 
     Button selectPhoto;
     ImageView imageTaken;
     Button processPhoto;
+    Button processPhotoLocal;
     TextView resultText;
     MarshMallowPermission marshMallowPermission = new MarshMallowPermission(this);
     private static final String splitPaymentImageFolder = "SplitPaymentImages";
@@ -62,6 +63,8 @@ public class MainActivity extends AppCompatActivity  implements OnClickListener 
         imageTaken = (ImageView) findViewById(R.id.imgTaken);
         processPhoto = (Button) findViewById(R.id.processPhoto);
         processPhoto.setOnClickListener(this);
+        processPhotoLocal = (Button) findViewById(R.id.processPhotoLocal);
+        processPhotoLocal.setOnClickListener(this);
         resultText = (TextView) findViewById(R.id.txtResult);
         selectPhoto = (Button) findViewById(R.id.selectPhoto);
         selectPhoto.setOnClickListener(this);
@@ -83,11 +86,16 @@ public class MainActivity extends AppCompatActivity  implements OnClickListener 
                 break;
 
             case R.id.processPhoto:
-                //String s = LocalGoogleOCRHelper.ProcessImage(this, bitmapPhoto);
-                //resultText.setText(s);
+                resultText.setText("");
                 Object[] params = {this,selectedImagePath};
                 new UploadImageTask().execute(params);
 
+                break;
+
+            case R.id.processPhotoLocal:
+                resultText.setText("");
+                String s = LocalGoogleOCRHelper.ProcessImage(this, bitmapPhoto);
+                resultText.setText(s);
                 break;
 
             case R.id.selectPhoto:
@@ -156,6 +164,7 @@ public class MainActivity extends AppCompatActivity  implements OnClickListener 
                     //}
                     imageTaken.setImageBitmap(bitmapPhoto);
                     processPhoto.setEnabled(true);
+                    processPhotoLocal.setEnabled(true);
                 }
                 catch (Exception e)
                 {
@@ -169,6 +178,7 @@ public class MainActivity extends AppCompatActivity  implements OnClickListener 
             } else {
                 Toast.makeText(this, "Image capture failed", Toast.LENGTH_LONG).show();
                 processPhoto.setEnabled(false);
+                processPhotoLocal.setEnabled(false);
             }
         }else if (requestCode == RESULT_LOAD_IMAGE) {
             if (resultCode == RESULT_OK && null != data) {
@@ -188,6 +198,7 @@ public class MainActivity extends AppCompatActivity  implements OnClickListener 
                 fixOrientation(90);
                 imageTaken.setImageBitmap(bitmapPhoto);
                 processPhoto.setEnabled(true);
+                processPhotoLocal.setEnabled(true);
                 this.selectedImagePath = picturePath;
             }
         }

@@ -47,8 +47,16 @@
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Procesar Foto"
+                android:text="Procesar Foto en Cloud"
                 android:id="@+id/processPhoto"
+                android:enabled="false"
+                android:layout_gravity="center_horizontal" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Procesar Foto Local"
+                android:id="@+id/processPhotoLocal"
                 android:enabled="false"
                 android:layout_gravity="center_horizontal" />
 
