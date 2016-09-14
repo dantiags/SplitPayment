@@ -2,19 +2,31 @@ package com.aycron.mobile.splitpayment.helpers;
 
 import android.app.Activity;
 
+import com.google.api.client.googleapis.services.GoogleClientRequestInitializer;
 import com.google.api.client.http.InputStreamContent;
 import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.model.ObjectAccessControl;
 import com.google.api.services.storage.model.StorageObject;
 import com.google.api.services.vision.v1.Vision;
+import com.google.api.services.vision.v1.VisionRequest;
+import com.google.api.services.vision.v1.model.AnnotateImageRequest;
+import com.google.api.services.vision.v1.model.AnnotateImageResponse;
+import com.google.api.services.vision.v1.model.BatchAnnotateImagesRequest;
+import com.google.api.services.vision.v1.model.BatchAnnotateImagesResponse;
+import com.google.api.services.vision.v1.model.EntityAnnotation;
+import com.google.api.services.vision.v1.model.Feature;
+import com.google.api.services.vision.v1.model.Image;
+import com.google.api.services.vision.v1.model.ImageSource;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by carlos.dantiags on 8/9/2016.
@@ -23,6 +35,7 @@ public class GoogleVisionHelper {
 
 
     private static String BUCKET_NAME = "splitpayment.appspot.com";
+    private static String BUCKET_URL = "gs://"+BUCKET_NAME+"/";
 
 
     public static String ProcessImage(Activity activity, String  path){
@@ -108,12 +121,43 @@ public class GoogleVisionHelper {
     public static String DetectText(Activity activity, String filename) {
 
         String resultString = filename;
+
         try {
 
             Vision vision = GoogleVisionFactory.getService(activity.getApplicationContext());
 
-            String s = "bla";
+            ImageSource imageSource = new ImageSource();
+            imageSource.setGcsImageUri( BUCKET_URL + filename);
 
+            AnnotateImageRequest request =
+                    new AnnotateImageRequest()
+                            .setImage(new Image().setSource(imageSource))
+                            .setFeatures(ImmutableList.of(
+                                    new Feature()
+                                            .setType("TEXT_DETECTION")));
+            Vision.Images.Annotate annotate =
+                    vision.images()
+                            .annotate(new BatchAnnotateImagesRequest().setRequests(ImmutableList.of(request)));
+
+            BatchAnnotateImagesResponse batchResponse = annotate.execute();
+            assert batchResponse.getResponses().size() == 1;
+            AnnotateImageResponse response = batchResponse.getResponses().get(0);
+
+            if (response.getTextAnnotations() == null) {
+                throw new IOException(
+                        response.getError() != null
+                                ? response.getError().getMessage()
+                                : "Unknown error getting image annotations");
+            }
+
+            List<EntityAnnotation> responses =  response.getTextAnnotations();
+
+            String s = "";
+            for (EntityAnnotation entityAnnotation : responses) {
+                s = s + entityAnnotation.getDescription() + "\n\n";
+            }
+
+            resultString = s;
 
 
         }catch (Exception ex){
