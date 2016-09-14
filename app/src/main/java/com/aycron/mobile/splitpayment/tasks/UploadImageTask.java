@@ -1,6 +1,5 @@
 package com.aycron.mobile.splitpayment.tasks;
 
-import android.app.Activity;
 import android.os.AsyncTask;
 import android.widget.TextView;
 
@@ -22,7 +21,7 @@ public class UploadImageTask extends AsyncTask<Object, Void, String> {
             MainActivity activity = (MainActivity)params[0];
             text = activity.getResultText();
             String path = (String) params[1];
-            result = GoogleVisionHelper.UploadImage(activity, path);
+            result = GoogleVisionHelper.ProcessImage(activity, path);
         } catch (Exception e) {
             this.exception = e;
 
@@ -32,7 +31,7 @@ public class UploadImageTask extends AsyncTask<Object, Void, String> {
     }
 
     protected void onPostExecute(String result) {
-        if(this.exception != null){
+        if(this.exception == null){
             this.text.setText(result);
         }else {
             this.text.setText(this.exception.getMessage());

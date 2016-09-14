@@ -6,8 +6,8 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.services.storage.Storage;
-import com.google.api.services.storage.StorageScopes;
+import com.google.api.services.vision.v1.Vision;
+import com.google.api.services.vision.v1.VisionScopes;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -17,13 +17,14 @@ import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 
 /**
- * Created by carlos.dantiags on 8/9/2016.
+ * Created by carlos.dantiags on 14/9/2016.
  */
-public class GoogleStorageFactory {
-    private static String STORAGE_NAME = "SplitPayment";
-    private static Storage instance = null;
+public class GoogleVisionFactory {
 
-    public static synchronized Storage getService(Context context) throws IOException, GeneralSecurityException {
+    private static String STORAGE_NAME = "SplitPayment";
+    private static Vision instance = null;
+
+    public static synchronized Vision getService(Context context) throws IOException, GeneralSecurityException {
         if (instance == null) {
             try {
                 buildService(context);
@@ -52,7 +53,7 @@ public class GoogleStorageFactory {
 
                     // Instance of the scopes required
                     ArrayList<String> scopes = new ArrayList<>();
-                    scopes.add(StorageScopes.CLOUD_PLATFORM);
+                    scopes.add(VisionScopes.CLOUD_PLATFORM);
 
                     // Http transport creation
                     //httpTransport = AndroidHttp.newCompatibleTransport();
@@ -67,9 +68,9 @@ public class GoogleStorageFactory {
                             .setServiceAccountPrivateKeyFromP12File(licenseFile)
                             .build();
 
-                    com.google.api.services.storage.Storage.Builder builder = new com.google.api.services.storage.Storage.Builder(httpTransport, jsonFactory, credential);
+                    com.google.api.services.vision.v1.Vision.Builder builder = new com.google.api.services.vision.v1.Vision.Builder(httpTransport, jsonFactory, credential);
                     builder.setApplicationName(STORAGE_NAME);
-                    com.google.api.services.storage.Storage client = builder.build();
+                    com.google.api.services.vision.v1.Vision  client = builder.build();
 
                     instance =  client;
                 }
@@ -112,5 +113,4 @@ public class GoogleStorageFactory {
         }
         return f;
     }
-
 }

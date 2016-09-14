@@ -6,12 +6,15 @@ import com.google.api.client.http.InputStreamContent;
 import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.model.ObjectAccessControl;
 import com.google.api.services.storage.model.StorageObject;
+import com.google.api.services.vision.v1.Vision;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Created by carlos.dantiags on 8/9/2016.
@@ -21,8 +24,23 @@ public class GoogleVisionHelper {
 
     private static String BUCKET_NAME = "splitpayment.appspot.com";
 
+
+    public static String ProcessImage(Activity activity, String  path){
+        String resultString = "";
+        try {
+            String fileName = UploadImage(activity, path);
+
+            resultString = DetectText(activity, fileName);
+
+        }catch (Exception ex){
+            resultString = ex.getMessage();
+        }
+
+        return resultString;
+    }
+
     public static String UploadImage(Activity activity, String  path){
-        String s ="";
+        String resultString ="";
         try {
 
             boolean useCustomMetadata = false;
@@ -64,7 +82,11 @@ public class GoogleVisionHelper {
                 // name by parameter. You will probably also want to ensure that your
                 // default object ACLs (a bucket property) are set appropriately:
                 // https://developers.google.com/storage/docs/json_api/v1/buckets#defaultObjectAcl
-                insertObject.setName(mediaFile.getName());
+                // Create a media file name
+                String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+                String name = "UP_" + timeStamp + "_" + mediaFile.getName();
+                insertObject.setName(name);
+                resultString = name;
             }
 
             // For small files, you may wish to call setDirectUploadEnabled(true), to
@@ -76,10 +98,30 @@ public class GoogleVisionHelper {
             insertObject.execute();
 
         }catch (Exception ex){
-            s = ex.getMessage();
+            resultString = ex.getMessage();
         }
 
-        return s;
+        return resultString;
     }
+
+
+    public static String DetectText(Activity activity, String filename) {
+
+        String resultString = filename;
+        try {
+
+            Vision vision = GoogleVisionFactory.getService(activity.getApplicationContext());
+
+            String s = "bla";
+
+
+
+        }catch (Exception ex){
+            resultString = ex.getMessage();
+        }
+
+        return resultString;
+    }
+
 
 }
