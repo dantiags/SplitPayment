@@ -1,14 +1,17 @@
 package com.aycron.mobile.splitpayment.helpers;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 
-import com.google.api.client.googleapis.services.GoogleClientRequestInitializer;
+import com.aycron.mobile.splitpayment.factories.GoogleStorageFactory;
+import com.aycron.mobile.splitpayment.factories.GoogleVisionFactory;
 import com.google.api.client.http.InputStreamContent;
+import com.google.api.client.repackaged.org.apache.commons.codec.binary.Base64;
 import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.model.ObjectAccessControl;
 import com.google.api.services.storage.model.StorageObject;
 import com.google.api.services.vision.v1.Vision;
-import com.google.api.services.vision.v1.VisionRequest;
 import com.google.api.services.vision.v1.model.AnnotateImageRequest;
 import com.google.api.services.vision.v1.model.AnnotateImageResponse;
 import com.google.api.services.vision.v1.model.BatchAnnotateImagesRequest;
@@ -21,6 +24,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -41,6 +45,21 @@ public class GoogleVisionHelper {
     public static String ProcessImage(Activity activity, String  path){
         String resultString = "";
         try {
+
+            //resultString = ProcessImageWithStorage(activity, path);
+            resultString = ProcessImageWithoutStorage(activity, path);
+
+        }catch (Exception ex){
+            resultString = ex.getMessage();
+        }
+
+        return resultString;
+    }
+
+    private static String ProcessImageWithStorage(Activity activity, String  path){
+
+        String resultString = "";
+        try {
             String fileName = UploadImage(activity, path);
 
             resultString = DetectText(activity, fileName);
@@ -50,9 +69,25 @@ public class GoogleVisionHelper {
         }
 
         return resultString;
+
     }
 
-    public static String UploadImage(Activity activity, String  path){
+    private static String ProcessImageWithoutStorage(Activity activity, String  path){
+
+        String resultString = "";
+        try {
+            Bitmap file = GetImage(path);
+
+            resultString = DetectText(activity, file);
+
+        }catch (Exception ex){
+            resultString = ex.getMessage();
+        }
+
+        return resultString;
+    }
+
+    private static String UploadImage(Activity activity, String  path){
         String resultString ="";
         try {
 
@@ -117,8 +152,7 @@ public class GoogleVisionHelper {
         return resultString;
     }
 
-
-    public static String DetectText(Activity activity, String filename) {
+    private static String DetectText(Activity activity, String filename) {
 
         String resultString = filename;
 
@@ -154,6 +188,7 @@ public class GoogleVisionHelper {
 
             String s = "";
             for (EntityAnnotation entityAnnotation : responses) {
+
                 s = s + entityAnnotation.getDescription() + "\n\n";
             }
 
@@ -167,5 +202,62 @@ public class GoogleVisionHelper {
         return resultString;
     }
 
+    private static Bitmap GetImage(String  path) {
+        Bitmap bm = BitmapFactory.decodeFile(path);
+        return bm;
+    }
+
+    private static String DetectText(Activity activity, Bitmap bitmap ) {
+
+        String resultString = "";
+
+        try {
+
+            Vision vision = GoogleVisionFactory.getService(activity.getApplicationContext());
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos); //bitmap is the bitmap object
+            byte[] byteArrayImage = baos.toByteArray();
+            Base64 base64 = new Base64();
+            String encodedImage = base64.encodeToString(byteArrayImage);
+
+            AnnotateImageRequest request =
+                    new AnnotateImageRequest()
+                            .setImage(new Image().setContent(encodedImage))
+                            .setFeatures(ImmutableList.of(
+                                    new Feature()
+                                            .setType("TEXT_DETECTION")));
+            Vision.Images.Annotate annotate =
+                    vision.images()
+                            .annotate(new BatchAnnotateImagesRequest().setRequests(ImmutableList.of(request)));
+
+            BatchAnnotateImagesResponse batchResponse = annotate.execute();
+            assert batchResponse.getResponses().size() == 1;
+            AnnotateImageResponse response = batchResponse.getResponses().get(0);
+
+            if (response.getTextAnnotations() == null) {
+                throw new IOException(
+                        response.getError() != null
+                                ? response.getError().getMessage()
+                                : "Unknown error getting image annotations");
+            }
+
+            List<EntityAnnotation> responses =  response.getTextAnnotations();
+
+            String s = "";
+            for (EntityAnnotation entityAnnotation : responses) {
+
+                s = s + entityAnnotation.getDescription() + "\n\n";
+            }
+
+            resultString = s;
+
+
+        }catch (Exception ex){
+            resultString = ex.getMessage();
+        }
+
+        return resultString;
+    }
 
 }
