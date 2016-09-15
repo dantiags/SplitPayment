@@ -5,12 +5,13 @@ import android.widget.TextView;
 
 import com.aycron.mobile.splitpayment.MainActivity;
 import com.aycron.mobile.splitpayment.helpers.GoogleVisionHelper;
+import com.aycron.mobile.splitpayment.helpers.TicketHelper;
 
 
 /**
  * Created by carlos.dantiags on 12/9/2016.
  */
-public class UploadImageTask extends AsyncTask<Object, Void, String> {
+public class ProcessImageTask extends AsyncTask<Object, Void, String> {
 
     private Exception exception;
     private TextView text;
@@ -32,8 +33,12 @@ public class UploadImageTask extends AsyncTask<Object, Void, String> {
 
     protected void onPostExecute(String result) {
         if(this.exception == null){
-            this.text.setText(result);
+            //this.text.setText(result);
+            String candidateLines = TicketHelper.extractLines(result);
+            this.text.setText(candidateLines);
+
         }else {
+
             this.text.setText(this.exception.getMessage());
         }
 

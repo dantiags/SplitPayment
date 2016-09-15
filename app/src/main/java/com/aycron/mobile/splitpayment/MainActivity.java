@@ -1,14 +1,11 @@
 package com.aycron.mobile.splitpayment;
 
 import android.content.ContentResolver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
-import android.graphics.RectF;
 import android.media.ExifInterface;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
@@ -25,10 +22,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.aycron.mobile.splitpayment.exceptions.ExceptionHandler;
-import com.aycron.mobile.splitpayment.helpers.GoogleVisionHelper;
 import com.aycron.mobile.splitpayment.helpers.LocalGoogleOCRHelper;
 import com.aycron.mobile.splitpayment.helpers.MarshMallowPermission;
-import com.aycron.mobile.splitpayment.tasks.UploadImageTask;
+import com.aycron.mobile.splitpayment.tasks.ProcessImageTask;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -88,7 +84,7 @@ public class MainActivity extends AppCompatActivity  implements OnClickListener 
             case R.id.processPhoto:
                 resultText.setText("");
                 Object[] params = {this,selectedImagePath};
-                new UploadImageTask().execute(params);
+                new ProcessImageTask().execute(params);
 
                 break;
 
