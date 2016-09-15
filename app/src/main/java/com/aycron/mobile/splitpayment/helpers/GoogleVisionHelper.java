@@ -3,9 +3,11 @@ package com.aycron.mobile.splitpayment.helpers;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.RectF;
 
 import com.aycron.mobile.splitpayment.factories.GoogleStorageFactory;
 import com.aycron.mobile.splitpayment.factories.GoogleVisionFactory;
+import com.google.android.gms.vision.text.TextBlock;
 import com.google.api.client.http.InputStreamContent;
 import com.google.api.client.repackaged.org.apache.commons.codec.binary.Base64;
 import com.google.api.services.storage.Storage;
@@ -16,6 +18,7 @@ import com.google.api.services.vision.v1.model.AnnotateImageRequest;
 import com.google.api.services.vision.v1.model.AnnotateImageResponse;
 import com.google.api.services.vision.v1.model.BatchAnnotateImagesRequest;
 import com.google.api.services.vision.v1.model.BatchAnnotateImagesResponse;
+import com.google.api.services.vision.v1.model.BoundingPoly;
 import com.google.api.services.vision.v1.model.EntityAnnotation;
 import com.google.api.services.vision.v1.model.Feature;
 import com.google.api.services.vision.v1.model.Image;
@@ -29,8 +32,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.TreeMap;
 
 /**
  * Created by carlos.dantiags on 8/9/2016.
@@ -169,30 +174,12 @@ public class GoogleVisionHelper {
                             .setFeatures(ImmutableList.of(
                                     new Feature()
                                             .setType("TEXT_DETECTION")));
-            Vision.Images.Annotate annotate =
-                    vision.images()
-                            .annotate(new BatchAnnotateImagesRequest().setRequests(ImmutableList.of(request)));
 
-            BatchAnnotateImagesResponse batchResponse = annotate.execute();
-            assert batchResponse.getResponses().size() == 1;
-            AnnotateImageResponse response = batchResponse.getResponses().get(0);
+            AnnotateImageResponse response = getResponse(vision, request);
 
-            if (response.getTextAnnotations() == null) {
-                throw new IOException(
-                        response.getError() != null
-                                ? response.getError().getMessage()
-                                : "Unknown error getting image annotations");
-            }
+            List<EntityAnnotation> responses = response.getTextAnnotations();
 
-            List<EntityAnnotation> responses =  response.getTextAnnotations();
-
-            String s = "";
-            for (EntityAnnotation entityAnnotation : responses) {
-
-                s = s + entityAnnotation.getDescription() + "\n\n";
-            }
-
-            resultString = s;
+            resultString = getTextResponse(responses);
 
 
         }catch (Exception ex){
@@ -227,30 +214,12 @@ public class GoogleVisionHelper {
                             .setFeatures(ImmutableList.of(
                                     new Feature()
                                             .setType("TEXT_DETECTION")));
-            Vision.Images.Annotate annotate =
-                    vision.images()
-                            .annotate(new BatchAnnotateImagesRequest().setRequests(ImmutableList.of(request)));
 
-            BatchAnnotateImagesResponse batchResponse = annotate.execute();
-            assert batchResponse.getResponses().size() == 1;
-            AnnotateImageResponse response = batchResponse.getResponses().get(0);
-
-            if (response.getTextAnnotations() == null) {
-                throw new IOException(
-                        response.getError() != null
-                                ? response.getError().getMessage()
-                                : "Unknown error getting image annotations");
-            }
+            AnnotateImageResponse response = getResponse(vision, request);
 
             List<EntityAnnotation> responses =  response.getTextAnnotations();
 
-            String s = "";
-            for (EntityAnnotation entityAnnotation : responses) {
-
-                s = s + entityAnnotation.getDescription() + "\n\n";
-            }
-
-            resultString = s;
+            resultString = getTextResponse(responses);
 
 
         }catch (Exception ex){
@@ -258,6 +227,70 @@ public class GoogleVisionHelper {
         }
 
         return resultString;
+    }
+
+    private static AnnotateImageResponse getResponse(Vision vision, AnnotateImageRequest request) throws IOException {
+
+        Vision.Images.Annotate annotate =
+                vision.images()
+                        .annotate(new BatchAnnotateImagesRequest().setRequests(ImmutableList.of(request)));
+
+        BatchAnnotateImagesResponse batchResponse = annotate.execute();
+        assert batchResponse.getResponses().size() == 1;
+        AnnotateImageResponse response = batchResponse.getResponses().get(0);
+
+        if (response.getTextAnnotations() == null) {
+            throw new IOException(
+                    response.getError() != null
+                            ? response.getError().getMessage()
+                            : "Unknown error getting image annotations");
+        }
+
+        return response;
+
+    }
+
+    private static String getTextResponse(List<EntityAnnotation> responses){
+        String resultString ="";
+
+        //GET ALL THE TEXT - FIRST RESPONSE
+        EntityAnnotation annotation = responses.get(0);
+        resultString = annotation.getDescription();
+        //----------------------------------------
+
+        //GET PIECES SORTED -
+
+       /* TreeMap<Integer, String> sortedIndexes = new TreeMap<>();
+
+        int i = 1;
+        for (EntityAnnotation entityAnnotation : responses) {
+            if(i!=1) {
+                BoundingPoly boundingPoly = entityAnnotation.getBoundingPoly();
+                sortedIndexes.put(boundingPoly.getVertices().get(0).getY(), entityAnnotation.getDescription());
+            }
+            i++;
+        }
+
+        List<String> results = new ArrayList<>();
+        for (Integer index : sortedIndexes.keySet()) {
+            results.add(sortedIndexes.get(index) );
+        }
+
+        String s = "";
+        for (String text : results) {
+            s = s + text + "\n\n";
+        }*/
+        //----------------------------------------
+
+
+        //GET ALL TOGETHER -
+          /* for (EntityAnnotation entityAnnotation : responses) {
+
+                s = s + entityAnnotation.getDescription() + "\n\n";
+            }*/
+        //----------------------------------------
+
+        return  resultString;
     }
 
 }
