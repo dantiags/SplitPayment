@@ -165,6 +165,7 @@ public class MainActivity extends AppCompatActivity  implements OnClickListener 
                     imageTaken.setImageBitmap(bitmapPhoto);
                     processPhoto.setEnabled(true);
                     processPhotoLocal.setEnabled(true);
+                    this.selectedImagePath = fileUri.getPath();
                 }
                 catch (Exception e)
                 {
