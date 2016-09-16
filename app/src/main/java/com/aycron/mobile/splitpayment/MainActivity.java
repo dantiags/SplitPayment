@@ -25,10 +25,12 @@ import com.aycron.mobile.splitpayment.exceptions.ExceptionHandler;
 import com.aycron.mobile.splitpayment.helpers.LocalGoogleOCRHelper;
 import com.aycron.mobile.splitpayment.helpers.MarshMallowPermission;
 import com.aycron.mobile.splitpayment.tasks.ProcessImageTask;
+import com.google.api.services.vision.v1.model.EntityAnnotation;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity  implements OnClickListener {
 
@@ -48,6 +50,7 @@ public class MainActivity extends AppCompatActivity  implements OnClickListener 
     TextView resultText;
     MarshMallowPermission marshMallowPermission = new MarshMallowPermission(this);
     private static final String splitPaymentImageFolder = "SplitPaymentImages";
+    private List<com.google.api.services.vision.v1.model.EntityAnnotation>  textResponses;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,7 +88,6 @@ public class MainActivity extends AppCompatActivity  implements OnClickListener 
                 resultText.setText("");
                 Object[] params = {this,selectedImagePath};
                 new ProcessImageTask().execute(params);
-
                 break;
 
             case R.id.processPhotoLocal:
@@ -101,8 +103,6 @@ public class MainActivity extends AppCompatActivity  implements OnClickListener 
         }
 
     }
-
-
 
 
     public void getPhotoFromCamera() {
@@ -242,6 +242,18 @@ public class MainActivity extends AppCompatActivity  implements OnClickListener 
         }
 
         return mediaFile;
+    }
+
+    public void setTextResponses(List<EntityAnnotation> textResponses) {
+        this.textResponses = textResponses;
+    }
+
+    //Callback to lauch FullSize Image Intent after OCR Works.
+    public void launchFullSizeImageIntent(){
+        Intent intent = new Intent(this, FullImageActivity.class);
+        intent.putExtra("IMAGE", bitmapPhoto);
+        intent.putExtra("TEXTS", textResponses.toArray());
+        startActivity(intent);
     }
 
 }

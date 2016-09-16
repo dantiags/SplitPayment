@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.RectF;
 
+import com.aycron.mobile.splitpayment.MainActivity;
 import com.aycron.mobile.splitpayment.factories.GoogleStorageFactory;
 import com.aycron.mobile.splitpayment.factories.GoogleVisionFactory;
 import com.google.android.gms.vision.text.TextBlock;
@@ -181,6 +182,8 @@ public class GoogleVisionHelper {
 
             resultString = getTextResponse(responses);
 
+           setMoneyTextResponsesToActivity((MainActivity)activity, responses);
+
 
         }catch (Exception ex){
             resultString = ex.getMessage();
@@ -221,6 +224,8 @@ public class GoogleVisionHelper {
 
             resultString = getTextResponse(responses);
 
+            setMoneyTextResponsesToActivity((MainActivity)activity, responses);
+
 
         }catch (Exception ex){
             resultString = ex.getMessage();
@@ -253,44 +258,25 @@ public class GoogleVisionHelper {
     private static String getTextResponse(List<EntityAnnotation> responses){
         String resultString ="";
 
-        //GET ALL THE TEXT - FIRST RESPONSE
         EntityAnnotation annotation = responses.get(0);
         resultString = annotation.getDescription();
-        //----------------------------------------
-
-        //GET PIECES SORTED -
-
-       /* TreeMap<Integer, String> sortedIndexes = new TreeMap<>();
-
-        int i = 1;
-        for (EntityAnnotation entityAnnotation : responses) {
-            if(i!=1) {
-                BoundingPoly boundingPoly = entityAnnotation.getBoundingPoly();
-                sortedIndexes.put(boundingPoly.getVertices().get(0).getY(), entityAnnotation.getDescription());
-            }
-            i++;
-        }
-
-        List<String> results = new ArrayList<>();
-        for (Integer index : sortedIndexes.keySet()) {
-            results.add(sortedIndexes.get(index) );
-        }
-
-        String s = "";
-        for (String text : results) {
-            s = s + text + "\n\n";
-        }*/
-        //----------------------------------------
-
-
-        //GET ALL TOGETHER -
-          /* for (EntityAnnotation entityAnnotation : responses) {
-
-                s = s + entityAnnotation.getDescription() + "\n\n";
-            }*/
-        //----------------------------------------
 
         return  resultString;
     }
+
+    private static void setMoneyTextResponsesToActivity(MainActivity activity, List<EntityAnnotation> responses) {
+
+        List<EntityAnnotation> filteredResponses = new ArrayList<>();
+
+        for (EntityAnnotation entityAnnotation : responses) {
+
+            if(TicketHelper.isValidPriceLine(entityAnnotation.getDescription())){
+                filteredResponses.add(entityAnnotation);
+            }
+        }
+
+        activity.setTextResponses(filteredResponses);
+    }
+
 
 }

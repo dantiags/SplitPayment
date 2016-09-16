@@ -12,6 +12,24 @@ public class TicketHelper {
 
     private static Boolean lineChanged = false;
 
+
+    public static boolean isValidPriceLine(String line){
+        boolean result;
+
+        if(line.trim().startsWith("$")){
+            line = line.substring(1);
+        }
+
+        if(tryParseFloat(line.replace(',', '.'))) {
+            result = true;
+        }else {
+            result = false;
+        }
+
+
+        return result;
+    }
+
     public static String extractLines(String fullticket){
 
         String r = "";
@@ -37,37 +55,6 @@ public class TicketHelper {
 
         return r;
     }
-
-/*
-    private static String parsePriceLine(String line, int i,  String lines[]){
-
-        String candidateLine = "";
-
-        if(line.trim().startsWith("$")){
-            line = line.substring(1);
-        }
-
-        if(tryParseFloat(line.replace(',', '.'))){
-            String candidateItem = lines[i-1];
-
-            if(lineChanged){
-                lineChanged = false;
-                candidateLine = lines[i+1] + " ----- " + line;
-
-            } else {
-
-                if (candidateItem.trim().startsWith("$")) {
-                    lineChanged = true;
-                    candidateLine = lines[i + 1] + " ----- " + line;
-                } else {
-                    candidateLine = candidateItem + " ----- " + line;
-                }
-            }
-        }
-        return  candidateLine;
-    }
-*/
-
 
     private static String parsePriceLine(String line, int i,  String lines[]){
 

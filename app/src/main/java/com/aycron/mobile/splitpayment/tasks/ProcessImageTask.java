@@ -14,15 +14,14 @@ import com.aycron.mobile.splitpayment.helpers.TicketHelper;
 public class ProcessImageTask extends AsyncTask<Object, Void, String> {
 
     private Exception exception;
-    private TextView text;
+    private MainActivity mainActivity;
 
     protected String doInBackground(Object... params) {
         String result;
         try {
-            MainActivity activity = (MainActivity)params[0];
-            text = activity.getResultText();
+            this.mainActivity = (MainActivity)params[0];
             String path = (String) params[1];
-            result = GoogleVisionHelper.ProcessImage(activity, path);
+            result = GoogleVisionHelper.ProcessImage(this.mainActivity, path);
         } catch (Exception e) {
             this.exception = e;
 
@@ -35,11 +34,11 @@ public class ProcessImageTask extends AsyncTask<Object, Void, String> {
         if(this.exception == null){
             //this.text.setText(result);
             String candidateLines = TicketHelper.extractLines(result);
-            this.text.setText(candidateLines);
+            this.mainActivity.getResultText().setText(candidateLines);
+            this.mainActivity.launchFullSizeImageIntent();
 
         }else {
-
-            this.text.setText(this.exception.getMessage());
+            this.mainActivity.getResultText().setText(this.exception.getMessage());
         }
 
     }
