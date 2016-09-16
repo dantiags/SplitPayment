@@ -5,7 +5,7 @@
     android:background="@color/black_overlay"
     tools:context="com.aycron.mobile.splitpayment.FullImageActivity">
 
-    <ImageView
+    <com.aycron.mobile.splitpayment.FullImageView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/fullScreenImage"

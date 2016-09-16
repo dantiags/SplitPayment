@@ -2,6 +2,8 @@ package com.aycron.mobile.splitpayment;
 
 import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
+import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -37,7 +39,7 @@ public class FullImageActivity extends AppCompatActivity {
      */
     private static final int UI_ANIMATION_DELAY = 300;
     private final Handler mHideHandler = new Handler();
-    private ImageView mContentView;
+    private FullImageView mContentView;
 
     private final Runnable mHidePart2Runnable = new Runnable() {
         @SuppressLint("InlinedApi")
@@ -96,15 +98,16 @@ public class FullImageActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_full_image);
 
-        mVisible = true;
-        mControlsView = findViewById(R.id.fullscreen_content_controls);
-
-        mContentView = (ImageView) findViewById(R.id.fullScreenImage);
         Bundle extras = getIntent().getExtras();
         Bitmap bitmap = (Bitmap) extras.get("IMAGE");
         Object[] textResponses = (Object[]) extras.get("TEXTS");
-        mContentView.setImageBitmap(bitmap);
 
+        mVisible = true;
+        mControlsView = findViewById(R.id.fullscreen_content_controls);
+
+        mContentView = (FullImageView) findViewById(R.id.fullScreenImage);
+        mContentView.setTextObjects(textResponses);
+        mContentView.setImageBitmap(bitmap);
 
         // Set up the user interaction to manually show or hide the system UI.
         mContentView.setOnClickListener(new View.OnClickListener() {
@@ -172,4 +175,6 @@ public class FullImageActivity extends AppCompatActivity {
         mHideHandler.removeCallbacks(mHideRunnable);
         mHideHandler.postDelayed(mHideRunnable, delayMillis);
     }
+
+
 }
