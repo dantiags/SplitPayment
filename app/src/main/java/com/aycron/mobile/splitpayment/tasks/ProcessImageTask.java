@@ -1,10 +1,7 @@
 package com.aycron.mobile.splitpayment.tasks;
 
 import android.os.AsyncTask;
-import android.widget.TextView;
-
-import com.aycron.mobile.splitpayment.FullImageActivity;
-import com.aycron.mobile.splitpayment.MainActivity;
+import com.aycron.mobile.splitpayment.ImageActivity;
 import com.aycron.mobile.splitpayment.helpers.GoogleVisionHelper;
 import com.aycron.mobile.splitpayment.helpers.TicketHelper;
 
@@ -15,12 +12,14 @@ import com.aycron.mobile.splitpayment.helpers.TicketHelper;
 public class ProcessImageTask extends AsyncTask<Object, Void, String> {
 
     private Exception exception;
-    private FullImageActivity activity;
+    //private FullImageActivity activity;
+    private ImageActivity activity;
 
     protected String doInBackground(Object... params) {
         String result;
         try {
-            this.activity = (FullImageActivity)params[0];
+            this.activity = (ImageActivity) params[0];
+            //this.activity = (FullImageActivity)params[0];
             String path = (String) params[1];
             result = GoogleVisionHelper.ProcessImage(this.activity, path);
         } catch (Exception e) {

@@ -1,12 +1,14 @@
 package com.aycron.mobile.splitpayment;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.widget.ImageView;
@@ -15,6 +17,7 @@ import com.google.api.services.vision.v1.model.BoundingPoly;
 import com.google.api.services.vision.v1.model.EntityAnnotation;
 import com.google.api.services.vision.v1.model.Vertex;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -54,9 +57,33 @@ public class FullImageView extends ImageView {
         Drawable drawable = this.getDrawable();
         Rect imageBounds = drawable.getBounds();
 
+
+        // These holds the ratios for the ImageView and the bitmap
+        Bitmap bitmap = ((BitmapDrawable)this.getDrawable()).getBitmap();
+        double bitmapRatio  = ((double)bitmap.getWidth())/bitmap.getHeight();
+        double imageViewRatio  = ((double)this.getWidth())/this.getHeight();
+
+        double drawLeft = 0;
+        double drawTop = 0;
+        double drawHeight = 0;
+        double drawWidth = 0;
+
+        if(bitmapRatio > imageViewRatio)
+        {
+            drawLeft = 0;
+            drawHeight = (imageViewRatio/bitmapRatio) * this.getHeight();
+            drawTop = (this.getHeight() - drawHeight)/2;
+        }
+        else
+        {
+            drawTop = 0;
+            drawWidth = (bitmapRatio/imageViewRatio) * this.getWidth();
+            drawLeft = (this.getWidth() - drawWidth)/2;
+        }
+
         //original height and width of the bitmap
-        int intrinsicHeight = this.getMeasuredHeight(); // drawable.getIntrinsicHeight();
-        int intrinsicWidth = this.getMeasuredWidth(); // drawable.getIntrinsicWidth();
+        int intrinsicHeight =  this.getMeasuredHeight(); //drawable.getIntrinsicHeight();
+        int intrinsicWidth =   this.getMeasuredWidth(); //drawable.getIntrinsicWidth();
 
         //height and width of the visible (scaled) image
         int scaledHeight = imageBounds.height();
@@ -65,8 +92,13 @@ public class FullImageView extends ImageView {
         //Find the ratio of the original image to the scaled image
         //Should normally be equal unless a disproportionate scaling
         //(e.g. fitXY) is used.
-        float heightRatio = intrinsicHeight / scaledHeight;
-        float widthRatio = intrinsicWidth / scaledWidth;
+        float heightRatio = (float) (intrinsicHeight - drawTop) / scaledHeight;
+        float widthRatio = (float) (intrinsicWidth  - drawLeft) / scaledWidth;
+
+        Float deltaX = round(widthRatio,2);
+        Float deltaY = round(heightRatio,2);
+        Float positionX = Float.parseFloat(String.valueOf(drawLeft));
+        Float positionY = Float.parseFloat(String.valueOf(drawTop));
 
         for (EntityAnnotation textBox : textResponses ) {
             String textString = textBox.getDescription();
@@ -77,17 +109,6 @@ public class FullImageView extends ImageView {
             Vertex v2 = vertices.get(1);
             Vertex v3 = vertices.get(2);
             Vertex v4 = vertices.get(3);
-
-            // Draws the bounding box around the TextBlock.
-/*          Float deltaX = 3.0f;
-            Float deltaY = 3.0f;
-            Float positionX = 50f;
-            Float positionY = 450f;*/
-
-            Float deltaX = widthRatio;
-            Float deltaY = heightRatio;
-            Float positionX = 50f;
-            Float positionY = 50f;
 
             Path wallpath = new Path();
             wallpath.reset(); // only needed when reusing this path for a new build
@@ -101,6 +122,12 @@ public class FullImageView extends ImageView {
 
         }
 
+    }
+
+    public static float round(float d, int decimalPlace) {
+        BigDecimal bd = new BigDecimal(Float.toString(d));
+        bd = bd.setScale(decimalPlace, BigDecimal.ROUND_HALF_UP);
+        return bd.floatValue();
     }
 
     @Override

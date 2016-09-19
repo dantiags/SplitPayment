@@ -15,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.aycron.mobile.splitpayment.helpers.LocalGoogleOCRHelper;
 import com.aycron.mobile.splitpayment.tasks.ProcessImageTask;
@@ -45,6 +46,7 @@ public class FullImageActivity extends AppCompatActivity implements View.OnClick
      */
     private static final int UI_ANIMATION_DELAY = 300;
     private final Handler mHideHandler = new Handler();
+
     private FullImageView mContentView;
     private String selectedImagePath;
     private List<EntityAnnotation> textResponses;
@@ -115,7 +117,6 @@ public class FullImageActivity extends AppCompatActivity implements View.OnClick
         mContentView = (FullImageView) findViewById(R.id.fullScreenImage);
         Bitmap bitmapPhoto = BitmapFactory.decodeFile(selectedImagePath);
         mContentView.setImageBitmap(bitmapPhoto);
-
         // Set up the user interaction to manually show or hide the system UI.
         mContentView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -130,6 +131,7 @@ public class FullImageActivity extends AppCompatActivity implements View.OnClick
         btnProcessImage =  (Button)  findViewById(R.id.btnImageProcess);
         btnProcessImage.setOnTouchListener(mDelayHideTouchListener);
         btnProcessImage.setOnClickListener(this);
+
     }
 
     @Override
@@ -221,6 +223,7 @@ public class FullImageActivity extends AppCompatActivity implements View.OnClick
         this.textResponses = textResponses;
         mContentView.setTextResponses(textResponses);
         mContentView.invalidate();
+
     }
 
 

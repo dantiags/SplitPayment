@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import com.aycron.mobile.splitpayment.FullImageActivity;
+import com.aycron.mobile.splitpayment.ImageActivity;
 import com.aycron.mobile.splitpayment.factories.GoogleStorageFactory;
 import com.aycron.mobile.splitpayment.factories.GoogleVisionFactory;
 import com.google.api.client.http.InputStreamContent;
@@ -177,7 +178,7 @@ public class GoogleVisionHelper {
 
             resultString = getTextResponse(responses);
 
-           setMoneyTextResponsesToActivity((FullImageActivity) activity, responses);
+           setMoneyTextResponsesToActivity((ImageActivity) activity, responses);
 
 
         }catch (Exception ex){
@@ -219,7 +220,7 @@ public class GoogleVisionHelper {
 
             resultString = getTextResponse(responses);
 
-            setMoneyTextResponsesToActivity((FullImageActivity) activity, responses);
+            setMoneyTextResponsesToActivity((ImageActivity) activity, responses);
 
 
         }catch (Exception ex){
@@ -259,7 +260,7 @@ public class GoogleVisionHelper {
         return  resultString;
     }
 
-    private static void setMoneyTextResponsesToActivity(FullImageActivity activity, List<EntityAnnotation> responses) {
+    private static void setMoneyTextResponsesToActivity(ImageActivity activity, List<EntityAnnotation> responses) {
 
         List<EntityAnnotation> filteredResponses = new ArrayList<>();
 
