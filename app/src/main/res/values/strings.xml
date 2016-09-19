@@ -2,6 +2,6 @@
     <string name="app_name">SplitPayment</string>
 
     <string name="title_activity_full_image">FullImageActivity</string>
-    <string name="dummy_button">Dummy Button</string>
-    <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="process_image">Process Image</string>
+    <string name="process_image_local">Process Image Local</string>
 </resources>

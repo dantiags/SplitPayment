@@ -3,12 +3,9 @@ package com.aycron.mobile.splitpayment.helpers;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.RectF;
-
-import com.aycron.mobile.splitpayment.MainActivity;
+import com.aycron.mobile.splitpayment.FullImageActivity;
 import com.aycron.mobile.splitpayment.factories.GoogleStorageFactory;
 import com.aycron.mobile.splitpayment.factories.GoogleVisionFactory;
-import com.google.android.gms.vision.text.TextBlock;
 import com.google.api.client.http.InputStreamContent;
 import com.google.api.client.repackaged.org.apache.commons.codec.binary.Base64;
 import com.google.api.services.storage.Storage;
@@ -19,7 +16,6 @@ import com.google.api.services.vision.v1.model.AnnotateImageRequest;
 import com.google.api.services.vision.v1.model.AnnotateImageResponse;
 import com.google.api.services.vision.v1.model.BatchAnnotateImagesRequest;
 import com.google.api.services.vision.v1.model.BatchAnnotateImagesResponse;
-import com.google.api.services.vision.v1.model.BoundingPoly;
 import com.google.api.services.vision.v1.model.EntityAnnotation;
 import com.google.api.services.vision.v1.model.Feature;
 import com.google.api.services.vision.v1.model.Image;
@@ -36,7 +32,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.TreeMap;
 
 /**
  * Created by carlos.dantiags on 8/9/2016.
@@ -182,7 +177,7 @@ public class GoogleVisionHelper {
 
             resultString = getTextResponse(responses);
 
-           setMoneyTextResponsesToActivity((MainActivity)activity, responses);
+           setMoneyTextResponsesToActivity((FullImageActivity) activity, responses);
 
 
         }catch (Exception ex){
@@ -224,7 +219,7 @@ public class GoogleVisionHelper {
 
             resultString = getTextResponse(responses);
 
-            setMoneyTextResponsesToActivity((MainActivity)activity, responses);
+            setMoneyTextResponsesToActivity((FullImageActivity) activity, responses);
 
 
         }catch (Exception ex){
@@ -264,7 +259,7 @@ public class GoogleVisionHelper {
         return  resultString;
     }
 
-    private static void setMoneyTextResponsesToActivity(MainActivity activity, List<EntityAnnotation> responses) {
+    private static void setMoneyTextResponsesToActivity(FullImageActivity activity, List<EntityAnnotation> responses) {
 
         List<EntityAnnotation> filteredResponses = new ArrayList<>();
 

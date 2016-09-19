@@ -41,16 +41,10 @@ public class MainActivity extends AppCompatActivity  implements OnClickListener 
     private static final String TAG = "SplitPaymentActivity";
     private Uri fileUri;
     private String selectedImagePath;
-    Bitmap bitmapPhoto;
     Button takePhoto;
     Button selectPhoto;
-    ImageView imageTaken;
-    Button processPhoto;
-    Button processPhotoLocal;
-    TextView resultText;
     MarshMallowPermission marshMallowPermission = new MarshMallowPermission(this);
     private static final String splitPaymentImageFolder = "SplitPaymentImages";
-    private List<com.google.api.services.vision.v1.model.EntityAnnotation>  textResponses;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,22 +53,10 @@ public class MainActivity extends AppCompatActivity  implements OnClickListener 
         Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler(this));
         takePhoto = (Button) findViewById(R.id.takePhoto);
         takePhoto.setOnClickListener(this);
-        imageTaken = (ImageView) findViewById(R.id.imgTaken);
-        processPhoto = (Button) findViewById(R.id.processPhoto);
-        processPhoto.setOnClickListener(this);
-        processPhotoLocal = (Button) findViewById(R.id.processPhotoLocal);
-        processPhotoLocal.setOnClickListener(this);
-        resultText = (TextView) findViewById(R.id.txtResult);
         selectPhoto = (Button) findViewById(R.id.selectPhoto);
         selectPhoto.setOnClickListener(this);
 
     }
-
-
-    public TextView getResultText() {
-        return resultText;
-    }
-
 
     @Override
     public void onClick(View view) {
@@ -84,22 +66,11 @@ public class MainActivity extends AppCompatActivity  implements OnClickListener 
                 getPhotoFromCamera();
                 break;
 
-            case R.id.processPhoto:
-                resultText.setText("");
-                Object[] params = {this,selectedImagePath};
-                new ProcessImageTask().execute(params);
-                break;
-
-            case R.id.processPhotoLocal:
-                resultText.setText("");
-                String s = LocalGoogleOCRHelper.ProcessImage(this, bitmapPhoto);
-                resultText.setText(s);
-                break;
-
             case R.id.selectPhoto:
                 Intent i = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                 startActivityForResult(i, RESULT_LOAD_IMAGE);
                 break;
+
         }
 
     }
@@ -151,17 +122,10 @@ public class MainActivity extends AppCompatActivity  implements OnClickListener 
 
                 try
                 {
-                    bitmapPhoto = android.provider.MediaStore.Images.Media.getBitmap(cr, fileUri);
-                    ExifInterface exif = new ExifInterface(fileUri.getPath());
-                    String exifOrientation = exif.getAttribute(ExifInterface.TAG_ORIENTATION);
-                    Toast.makeText(this, exifOrientation, Toast.LENGTH_SHORT).show();
-                    //if(exifOrientation.equals("0")) {
-                        fixOrientation(90);
-                    //}
-                    imageTaken.setImageBitmap(bitmapPhoto);
-                    processPhoto.setEnabled(true);
-                    processPhotoLocal.setEnabled(true);
+
                     this.selectedImagePath = fileUri.getPath();
+
+                    this.launchFullSizeImageIntent();
                 }
                 catch (Exception e)
                 {
@@ -174,8 +138,6 @@ public class MainActivity extends AppCompatActivity  implements OnClickListener 
                 Toast.makeText(this, "Image capture cancelled", Toast.LENGTH_LONG).show();
             } else {
                 Toast.makeText(this, "Image capture failed", Toast.LENGTH_LONG).show();
-                processPhoto.setEnabled(false);
-                processPhotoLocal.setEnabled(false);
             }
         }else if (requestCode == RESULT_LOAD_IMAGE) {
             if (resultCode == RESULT_OK && null != data) {
@@ -190,24 +152,13 @@ public class MainActivity extends AppCompatActivity  implements OnClickListener 
                 String picturePath = cursor.getString(columnIndex);
                 cursor.close();
 
-                // String picturePath contains the path of selected Image
-                bitmapPhoto = BitmapFactory.decodeFile(picturePath);
-                fixOrientation(90);
-                imageTaken.setImageBitmap(bitmapPhoto);
-                processPhoto.setEnabled(true);
-                processPhotoLocal.setEnabled(true);
                 this.selectedImagePath = picturePath;
+
+                this.launchFullSizeImageIntent();
             }
         }
     }
 
-    public void fixOrientation(int degrees) {
-        if (bitmapPhoto.getWidth() > bitmapPhoto.getHeight()) {
-            Matrix matrix = new Matrix();
-            matrix.postRotate(degrees);
-            bitmapPhoto = Bitmap.createBitmap(bitmapPhoto , 0, 0, bitmapPhoto.getWidth(), bitmapPhoto.getHeight(), matrix, true);
-        }
-    }
 
     /** Create a file Uri for saving an image or video */
     private static Uri getOutputMediaFileUri(int type){
@@ -244,15 +195,10 @@ public class MainActivity extends AppCompatActivity  implements OnClickListener 
         return mediaFile;
     }
 
-    public void setTextResponses(List<EntityAnnotation> textResponses) {
-        this.textResponses = textResponses;
-    }
-
     //Callback to lauch FullSize Image Intent after OCR Works.
-    public void launchFullSizeImageIntent(){
+    private void launchFullSizeImageIntent(){
         Intent intent = new Intent(this, FullImageActivity.class);
-        intent.putExtra("IMAGE", bitmapPhoto);
-        intent.putExtra("TEXTS", textResponses.toArray());
+        intent.putExtra("IMAGE", this.selectedImagePath);
         startActivity(intent);
     }
 

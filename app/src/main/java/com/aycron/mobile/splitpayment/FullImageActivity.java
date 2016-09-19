@@ -2,6 +2,8 @@ package com.aycron.mobile.splitpayment;
 
 import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.support.v7.app.ActionBar;
@@ -10,8 +12,11 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 
+import com.aycron.mobile.splitpayment.helpers.LocalGoogleOCRHelper;
+import com.aycron.mobile.splitpayment.tasks.ProcessImageTask;
 import com.google.api.services.vision.v1.model.EntityAnnotation;
 
 import java.util.List;
@@ -20,7 +25,7 @@ import java.util.List;
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
-public class FullImageActivity extends AppCompatActivity {
+public class FullImageActivity extends AppCompatActivity implements View.OnClickListener {
     /**
      * Whether or not the system UI should be auto-hidden after
      * {@link #AUTO_HIDE_DELAY_MILLIS} milliseconds.
@@ -39,7 +44,15 @@ public class FullImageActivity extends AppCompatActivity {
      */
     private static final int UI_ANIMATION_DELAY = 300;
     private final Handler mHideHandler = new Handler();
-    private FullImageView mContentView;
+    //private FullImageView mContentView;
+    private ImageView mContentView;
+    private String selectedImagePath;
+    private List<EntityAnnotation> textResponses;
+    private Button btnProcessImage;
+
+    public void setTextResponses(List<EntityAnnotation> textResponses) {
+        this.textResponses = textResponses;
+    }
 
     private final Runnable mHidePart2Runnable = new Runnable() {
         @SuppressLint("InlinedApi")
@@ -92,6 +105,7 @@ public class FullImageActivity extends AppCompatActivity {
         }
     };
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -99,15 +113,16 @@ public class FullImageActivity extends AppCompatActivity {
         setContentView(R.layout.activity_full_image);
 
         Bundle extras = getIntent().getExtras();
-        Bitmap bitmap = (Bitmap) extras.get("IMAGE");
-        Object[] textResponses = (Object[]) extras.get("TEXTS");
+        selectedImagePath = (String) extras.get("IMAGE");
+        //Object[] textResponses = (Object[]) extras.get("TEXTS");
 
         mVisible = true;
         mControlsView = findViewById(R.id.fullscreen_content_controls);
-
-        mContentView = (FullImageView) findViewById(R.id.fullScreenImage);
-        mContentView.setTextObjects(textResponses);
-        mContentView.setImageBitmap(bitmap);
+        //mContentView = (FullImageView) findViewById(R.id.fullScreenImage);
+        mContentView = (ImageView) findViewById(R.id.fullScreenImage);
+        //mContentView.setTextObjects(textResponses);
+        Bitmap bitmapPhoto = BitmapFactory.decodeFile(selectedImagePath);
+        mContentView.setImageBitmap(bitmapPhoto);
 
         // Set up the user interaction to manually show or hide the system UI.
         mContentView.setOnClickListener(new View.OnClickListener() {
@@ -120,7 +135,9 @@ public class FullImageActivity extends AppCompatActivity {
         // Upon interacting with UI controls, delay any scheduled hide()
         // operations to prevent the jarring behavior of controls going away
         // while interacting with the UI.
-        findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
+        btnProcessImage =  (Button)  findViewById(R.id.btnImageProcess);
+        btnProcessImage.setOnTouchListener(mDelayHideTouchListener);
+        btnProcessImage.setOnClickListener(this);
     }
 
     @Override
@@ -174,6 +191,37 @@ public class FullImageActivity extends AppCompatActivity {
     private void delayedHide(int delayMillis) {
         mHideHandler.removeCallbacks(mHideRunnable);
         mHideHandler.postDelayed(mHideRunnable, delayMillis);
+    }
+
+
+    public Bitmap fixOrientation(int degrees, Bitmap bitmapPhoto) {
+
+        if (bitmapPhoto.getWidth() > bitmapPhoto.getHeight()) {
+            Matrix matrix = new Matrix();
+            matrix.postRotate(degrees);
+            bitmapPhoto = Bitmap.createBitmap(bitmapPhoto , 0, 0, bitmapPhoto.getWidth(), bitmapPhoto.getHeight(), matrix, true);
+        }
+        return bitmapPhoto;
+    }
+
+
+    @Override
+    public void onClick(View view) {
+
+        switch (view.getId()){
+
+            case R.id.btnImageProcess:
+                Object[] params = {this,selectedImagePath};
+                new ProcessImageTask().execute(params);
+                break;
+
+            case R.id.btnImageProcessLocal:
+                Bitmap bitmapPhoto = BitmapFactory.decodeFile(this.selectedImagePath);
+                bitmapPhoto = fixOrientation(90, bitmapPhoto);
+                String s = LocalGoogleOCRHelper.ProcessImage(this, bitmapPhoto);
+                break;
+        }
+
     }
 
 

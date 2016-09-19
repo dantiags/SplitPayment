@@ -5,7 +5,13 @@
     android:background="@color/black_overlay"
     tools:context="com.aycron.mobile.splitpayment.FullImageActivity">
 
-    <com.aycron.mobile.splitpayment.FullImageView
+<!--    <com.aycron.mobile.splitpayment.FullImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/fullScreenImage"
+        android:layout_gravity="center" />-->
+
+   <ImageView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/fullScreenImage"
@@ -30,12 +36,20 @@
             tools:ignore="UselessParent">
 
             <Button
-                android:id="@+id/dummy_button"
+                android:id="@+id/btnImageProcess"
                 style="?metaButtonBarButtonStyle"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/dummy_button" />
+                android:text="@string/process_image" />
+
+            <Button
+                android:id="@+id/btnImageProcessLocal"
+                style="?metaButtonBarButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/process_image_local" />
 
         </LinearLayout>
 
