@@ -11,15 +11,20 @@ import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.widget.ImageView;
 
+import com.google.api.services.vision.v1.model.BoundingPoly;
+import com.google.api.services.vision.v1.model.EntityAnnotation;
+import com.google.api.services.vision.v1.model.Vertex;
+
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Created by carlos.dantiags on 16/9/2016.
  */
 public class FullImageView extends ImageView {
 
-    private Object[] textObjects;
+    private List<EntityAnnotation> textResponses = new ArrayList<>();
 
     public FullImageView(Context context) {
         super(context);
@@ -33,8 +38,8 @@ public class FullImageView extends ImageView {
         super(context, attrs, defStyleAttr);
     }
 
-    public void setTextObjects(Object[] textObjects) {
-        this.textObjects = textObjects;
+    public void setTextResponses(List<EntityAnnotation> textResponses) {
+        this.textResponses = textResponses;
     }
 
     @Override
@@ -50,8 +55,8 @@ public class FullImageView extends ImageView {
         Rect imageBounds = drawable.getBounds();
 
         //original height and width of the bitmap
-        int intrinsicHeight = drawable.getIntrinsicHeight();
-        int intrinsicWidth = drawable.getIntrinsicWidth();
+        int intrinsicHeight = this.getMeasuredHeight(); // drawable.getIntrinsicHeight();
+        int intrinsicWidth = this.getMeasuredWidth(); // drawable.getIntrinsicWidth();
 
         //height and width of the visible (scaled) image
         int scaledHeight = imageBounds.height();
@@ -63,30 +68,34 @@ public class FullImageView extends ImageView {
         float heightRatio = intrinsicHeight / scaledHeight;
         float widthRatio = intrinsicWidth / scaledWidth;
 
-        for (Object textBox : textObjects ) {
-            HashMap<String, Object> textBoxMap = (HashMap<String, Object>) textBox;
-            String textString = (String) textBoxMap.get("description");
-            HashMap<String, Object> verticesMap = (HashMap<String, Object> ) textBoxMap.get("boundingPoly");
-            ArrayList<HashMap<String, Object>> verticesArray = (ArrayList<HashMap<String, Object>>) verticesMap.get("vertices");
+        for (EntityAnnotation textBox : textResponses ) {
+            String textString = textBox.getDescription();
+            BoundingPoly poly = textBox.getBoundingPoly();
+            List<Vertex> vertices = poly.getVertices();
 
-            HashMap<String, Object> v1 = verticesArray.get(0);
-            HashMap<String, Object> v2 = verticesArray.get(1);
-            HashMap<String, Object> v3 = verticesArray.get(2);
-            HashMap<String, Object> v4 = verticesArray.get(3);
+            Vertex v1 = vertices.get(0);
+            Vertex v2 = vertices.get(1);
+            Vertex v3 = vertices.get(2);
+            Vertex v4 = vertices.get(3);
 
             // Draws the bounding box around the TextBlock.
-            Float deltaX = 3.0f;
+/*          Float deltaX = 3.0f;
             Float deltaY = 3.0f;
             Float positionX = 50f;
-            Float positionY = 450f;
+            Float positionY = 450f;*/
+
+            Float deltaX = widthRatio;
+            Float deltaY = heightRatio;
+            Float positionX = 50f;
+            Float positionY = 50f;
 
             Path wallpath = new Path();
             wallpath.reset(); // only needed when reusing this path for a new build
-            wallpath.moveTo((Float.parseFloat(v1.get("x").toString())  * deltaX) + positionX, (Float.parseFloat(v1.get("y").toString()) * deltaY)+ positionY);
-            wallpath.lineTo((Float.parseFloat(v2.get("x").toString())  * deltaX) + positionX, (Float.parseFloat(v2.get("y").toString()) * deltaY)+ positionY);
-            wallpath.lineTo((Float.parseFloat(v3.get("x").toString())  * deltaX) + positionX, (Float.parseFloat(v3.get("y").toString()) * deltaY)+ positionY);
-            wallpath.lineTo((Float.parseFloat(v4.get("x").toString())  * deltaX) + positionX, (Float.parseFloat(v4.get("y").toString()) * deltaY)+ positionY);
-            wallpath.lineTo((Float.parseFloat(v1.get("x").toString())  * deltaX) + positionX, (Float.parseFloat(v1.get("y").toString()) * deltaY)+ positionY);
+            wallpath.moveTo((Float.parseFloat(v1.getX().toString())  * deltaX) + positionX, (Float.parseFloat(v1.getY().toString()) * deltaY)+ positionY);
+            wallpath.lineTo((Float.parseFloat(v2.getX().toString())  * deltaX) + positionX, (Float.parseFloat(v2.getY().toString()) * deltaY)+ positionY);
+            wallpath.lineTo((Float.parseFloat(v3.getX().toString())  * deltaX) + positionX, (Float.parseFloat(v3.getY().toString()) * deltaY)+ positionY);
+            wallpath.lineTo((Float.parseFloat(v4.getX().toString())  * deltaX) + positionX, (Float.parseFloat(v4.getY().toString()) * deltaY)+ positionY);
+            wallpath.lineTo((Float.parseFloat(v1.getX().toString())  * deltaX) + positionX, (Float.parseFloat(v1.getY().toString()) * deltaY)+ positionY);
 
             canvas.drawPath(wallpath, paint);
 

@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 
@@ -44,15 +45,10 @@ public class FullImageActivity extends AppCompatActivity implements View.OnClick
      */
     private static final int UI_ANIMATION_DELAY = 300;
     private final Handler mHideHandler = new Handler();
-    //private FullImageView mContentView;
-    private ImageView mContentView;
+    private FullImageView mContentView;
     private String selectedImagePath;
     private List<EntityAnnotation> textResponses;
     private Button btnProcessImage;
-
-    public void setTextResponses(List<EntityAnnotation> textResponses) {
-        this.textResponses = textResponses;
-    }
 
     private final Runnable mHidePart2Runnable = new Runnable() {
         @SuppressLint("InlinedApi")
@@ -114,13 +110,9 @@ public class FullImageActivity extends AppCompatActivity implements View.OnClick
 
         Bundle extras = getIntent().getExtras();
         selectedImagePath = (String) extras.get("IMAGE");
-        //Object[] textResponses = (Object[]) extras.get("TEXTS");
-
         mVisible = true;
         mControlsView = findViewById(R.id.fullscreen_content_controls);
-        //mContentView = (FullImageView) findViewById(R.id.fullScreenImage);
-        mContentView = (ImageView) findViewById(R.id.fullScreenImage);
-        //mContentView.setTextObjects(textResponses);
+        mContentView = (FullImageView) findViewById(R.id.fullScreenImage);
         Bitmap bitmapPhoto = BitmapFactory.decodeFile(selectedImagePath);
         mContentView.setImageBitmap(bitmapPhoto);
 
@@ -223,6 +215,14 @@ public class FullImageActivity extends AppCompatActivity implements View.OnClick
         }
 
     }
+
+
+    public void setTextResponses(List<EntityAnnotation> textResponses) {
+        this.textResponses = textResponses;
+        mContentView.setTextResponses(textResponses);
+        mContentView.invalidate();
+    }
+
 
 
 }
