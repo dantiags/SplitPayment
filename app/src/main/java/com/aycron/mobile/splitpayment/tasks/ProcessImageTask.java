@@ -33,7 +33,7 @@ public class ProcessImageTask extends AsyncTask<Object, Void, String> {
     protected void onPostExecute(String result) {
         if(this.exception == null){
             //this.text.setText(result);
-            String candidateLines = TicketHelper.extractLines(result);
+            //String candidateLines = TicketHelper.extractLines(result);
         }
     }
 }

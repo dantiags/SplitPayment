@@ -202,11 +202,4 @@ public class MainActivity extends AppCompatActivity  implements OnClickListener 
         startActivity(intent);
     }
 
-/*    //Callback to lauch FullSize Image Intent after OCR Works.
-    private void launchFullSizeImageIntent(){
-        Intent intent = new Intent(this, ImageActivity.class);
-        intent.putExtra("IMAGE", this.selectedImagePath);
-        startActivity(intent);
-    }*/
-
 }

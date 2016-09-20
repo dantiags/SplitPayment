@@ -10,9 +10,11 @@ import android.util.Log;
 import android.util.SparseArray;
 import android.widget.Toast;
 
+import com.aycron.mobile.splitpayment.FullImageActivity;
 import com.google.android.gms.vision.Frame;
 import com.google.android.gms.vision.text.TextBlock;
 import com.google.android.gms.vision.text.TextRecognizer;
+import com.google.api.services.vision.v1.model.EntityAnnotation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,17 +27,29 @@ public class LocalGoogleOCRHelper {
     private static final String TAG = "LocalGoogleOCRHelper";
 
 
-    public static String ProcessImage(Activity activity, Bitmap bitmapPhoto){
-        String s = "";
-        List<String> textResults = GetRecognizedText(activity, bitmapPhoto);
+    public static void ProcessImage(FullImageActivity activity, Bitmap bitmapPhoto){
 
-        for (String text : textResults) {
-            s = s + text + "\n\n";
+        SparseArray<TextBlock> textResults = GetRecognizedText(activity, bitmapPhoto);
+
+        List<TextBlock> filteredResponses = new ArrayList<>();
+        TextBlock block;
+
+        for(int i = 0; i < textResults.size(); i++) {
+            block = textResults.get(textResults.keyAt(i));
+
+            filteredResponses.add(block);
+
+           /* if(TicketHelper.isValidPriceLine(block.getValue())){
+                filteredResponses.add(block);
+            }*/
         }
-        return s;
+
+
+
+        activity.setLocalTextResponses(filteredResponses);
     }
 
-    public static List<String> GetRecognizedText(Activity activity, Bitmap myBitmap){
+    public static SparseArray<TextBlock> GetRecognizedText(Activity activity, Bitmap myBitmap){
 
         List<String> results = new ArrayList<>();
         Context context = activity.getApplicationContext();
@@ -56,19 +70,6 @@ public class LocalGoogleOCRHelper {
         Frame frame = (new Frame.Builder()).setBitmap(myBitmap).build();
         SparseArray<TextBlock> detectedTextBlocks = textRecognizer.detect(frame);
 
-        TreeMap<Float, Integer> sortedIndexes = new TreeMap<>();
-        TextBlock block;
-        for(int i = 0; i < detectedTextBlocks.size(); i++) {
-            block = detectedTextBlocks.get(detectedTextBlocks.keyAt(i));
-            RectF rect = new RectF(block.getBoundingBox());
-            sortedIndexes.put(rect.top,detectedTextBlocks.keyAt(i));
-        }
-
-        for (Float index : sortedIndexes.keySet()) {
-            results.add(detectedTextBlocks.get(sortedIndexes.get(index)).getValue());
-        }
-
-
-        return results;
+        return detectedTextBlocks;
     }
 }

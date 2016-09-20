@@ -20,8 +20,10 @@ import android.widget.Toast;
 
 import com.aycron.mobile.splitpayment.helpers.LocalGoogleOCRHelper;
 import com.aycron.mobile.splitpayment.tasks.ProcessImageTask;
+import com.google.android.gms.vision.text.TextBlock;
 import com.google.api.services.vision.v1.model.EntityAnnotation;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -51,7 +53,9 @@ public class FullImageActivity extends AppCompatActivity implements View.OnClick
     private FullImageView mContentView;
     private String selectedImagePath;
     private List<EntityAnnotation> textResponses;
+    private List<TextBlock> localTextResponses;
     private Button btnProcessImage;
+    private Button btnImageProcessLocal;
     private final Handler handler = new Handler();
 
     private final Runnable mHidePart2Runnable = new Runnable() {
@@ -128,12 +132,13 @@ public class FullImageActivity extends AppCompatActivity implements View.OnClick
             }
         });
 
-        // Upon interacting with UI controls, delay any scheduled hide()
-        // operations to prevent the jarring behavior of controls going away
-        // while interacting with the UI.
         btnProcessImage =  (Button)  findViewById(R.id.btnImageProcess);
         btnProcessImage.setOnTouchListener(mDelayHideTouchListener);
         btnProcessImage.setOnClickListener(this);
+
+        btnImageProcessLocal = (Button) findViewById(R.id.btnImageProcessLocal);
+        btnImageProcessLocal.setOnTouchListener(mDelayHideTouchListener);
+        btnImageProcessLocal.setOnClickListener(this);
 
         doTheAutoRefresh();
 
@@ -227,7 +232,7 @@ public class FullImageActivity extends AppCompatActivity implements View.OnClick
             case R.id.btnImageProcessLocal:
                 Bitmap bitmapPhoto = BitmapFactory.decodeFile(this.selectedImagePath);
                 bitmapPhoto = fixOrientation(90, bitmapPhoto);
-                String s = LocalGoogleOCRHelper.ProcessImage(this, bitmapPhoto);
+                LocalGoogleOCRHelper.ProcessImage(this, bitmapPhoto);
                 break;
         }
 
@@ -235,9 +240,17 @@ public class FullImageActivity extends AppCompatActivity implements View.OnClick
 
 
     public void setTextResponses(List<EntityAnnotation> textResponses) {
-            this.textResponses = textResponses;
-            mContentView.setTextResponses(textResponses);
-            mContentView.invalidate();
+        this.textResponses = textResponses;
+        mContentView.setTextResponses(textResponses);
+        mContentView.setLocalTextResponses(new ArrayList<TextBlock>());
+        mContentView.invalidate();
+    }
+
+    public void setLocalTextResponses(List<TextBlock> textResponses) {
+        this.localTextResponses = textResponses;
+        mContentView.setLocalTextResponses(textResponses);
+        mContentView.setTextResponses(new ArrayList<EntityAnnotation>());
+        mContentView.invalidate();
     }
 
 
