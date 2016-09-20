@@ -16,6 +16,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.aycron.mobile.splitpayment.helpers.LocalGoogleOCRHelper;
 import com.aycron.mobile.splitpayment.tasks.ProcessImageTask;
@@ -51,6 +52,7 @@ public class FullImageActivity extends AppCompatActivity implements View.OnClick
     private String selectedImagePath;
     private List<EntityAnnotation> textResponses;
     private Button btnProcessImage;
+    private final Handler handler = new Handler();
 
     private final Runnable mHidePart2Runnable = new Runnable() {
         @SuppressLint("InlinedApi")
@@ -116,6 +118,7 @@ public class FullImageActivity extends AppCompatActivity implements View.OnClick
         mControlsView = findViewById(R.id.fullscreen_content_controls);
         mContentView = (FullImageView) findViewById(R.id.fullScreenImage);
         Bitmap bitmapPhoto = BitmapFactory.decodeFile(selectedImagePath);
+        bitmapPhoto = fixOrientation(90, bitmapPhoto);
         mContentView.setImageBitmap(bitmapPhoto);
         // Set up the user interaction to manually show or hide the system UI.
         mContentView.setOnClickListener(new View.OnClickListener() {
@@ -132,6 +135,18 @@ public class FullImageActivity extends AppCompatActivity implements View.OnClick
         btnProcessImage.setOnTouchListener(mDelayHideTouchListener);
         btnProcessImage.setOnClickListener(this);
 
+        doTheAutoRefresh();
+
+    }
+
+    private void doTheAutoRefresh() {
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                // Write code for your refresh logic
+                doTheAutoRefresh();
+            }
+        }, 5000);
     }
 
     @Override
@@ -220,10 +235,9 @@ public class FullImageActivity extends AppCompatActivity implements View.OnClick
 
 
     public void setTextResponses(List<EntityAnnotation> textResponses) {
-        this.textResponses = textResponses;
-        mContentView.setTextResponses(textResponses);
-        mContentView.invalidate();
-
+            this.textResponses = textResponses;
+            mContentView.setTextResponses(textResponses);
+            mContentView.invalidate();
     }
 
 
