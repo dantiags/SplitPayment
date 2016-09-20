@@ -11,6 +11,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.widget.ImageView;
 
 import com.google.api.services.vision.v1.model.BoundingPoly;
@@ -19,7 +20,6 @@ import com.google.api.services.vision.v1.model.Vertex;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -28,6 +28,17 @@ import java.util.List;
 public class FullImageView extends ImageView {
 
     private List<EntityAnnotation> textResponses = new ArrayList<>();
+
+    private int origW = 0;
+    private int origH = 0;
+
+    // Calculate the actual dimensions
+    private int actW = 0;
+    private int actH = 0;
+
+    private float scaleX = 0f;
+    private float scaleY = 0f;
+
 
     public FullImageView(Context context) {
         super(context);
@@ -54,10 +65,6 @@ public class FullImageView extends ImageView {
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(5);
 
-        Drawable drawable = this.getDrawable();
-        Rect imageBounds = drawable.getBounds();
-
-
         // These holds the ratios for the ImageView and the bitmap
         Bitmap bitmap = ((BitmapDrawable)this.getDrawable()).getBitmap();
         double bitmapRatio  = ((double)bitmap.getWidth())/bitmap.getHeight();
@@ -81,24 +88,11 @@ public class FullImageView extends ImageView {
             drawLeft = (this.getWidth() - drawWidth)/2;
         }
 
-        //original height and width of the bitmap
-        int intrinsicHeight =  this.getMeasuredHeight(); //drawable.getIntrinsicHeight();
-        int intrinsicWidth =   this.getMeasuredWidth(); //drawable.getIntrinsicWidth();
-
-        //height and width of the visible (scaled) image
-        int scaledHeight = imageBounds.height();
-        int scaledWidth = imageBounds.width();
-
-        //Find the ratio of the original image to the scaled image
-        //Should normally be equal unless a disproportionate scaling
-        //(e.g. fitXY) is used.
-        float heightRatio = (float) (intrinsicHeight - drawTop) / scaledHeight;
-        float widthRatio = (float) (intrinsicWidth  - drawLeft) / scaledWidth;
-
-        Float deltaX = round(widthRatio,2);
-        Float deltaY = round(heightRatio,2);
         Float positionX = Float.parseFloat(String.valueOf(drawLeft));
         Float positionY = Float.parseFloat(String.valueOf(drawTop));
+        Float deltaX = scaleX;
+        Float deltaY = scaleY;
+
 
         for (EntityAnnotation textBox : textResponses ) {
             String textString = textBox.getDescription();
@@ -124,15 +118,36 @@ public class FullImageView extends ImageView {
 
     }
 
-    public static float round(float d, int decimalPlace) {
-        BigDecimal bd = new BigDecimal(Float.toString(d));
-        bd = bd.setScale(decimalPlace, BigDecimal.ROUND_HALF_UP);
-        return bd.floatValue();
-    }
 
     @Override
-    protected void onSizeChanged(int w, int h, int oldw, int oldh)
-    {
-        super.onSizeChanged(w, h, oldw, oldh);
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+
+        // Get image matrix values and place them in an array
+        float[] f = new float[9];
+        getImageMatrix().getValues(f);
+
+        // Extract the scale values using the constants (if aspect ratio maintained, scaleX == scaleY)
+        final float scaleX = f[Matrix.MSCALE_X];
+        final float scaleY = f[Matrix.MSCALE_Y];
+
+        // Get the drawable (could also get the bitmap behind the drawable and getWidth/getHeight)
+        final Drawable d = getDrawable();
+        final int origW = d.getIntrinsicWidth();
+        final int origH = d.getIntrinsicHeight();
+
+        // Calculate the actual dimensions
+        final int actW = Math.round(origW * scaleX);
+        final int actH = Math.round(origH * scaleY);
+
+        Log.e("DBG", "["+origW+","+origH+"] -> ["+actW+","+actH+"] & scales: x="+scaleX+" y="+scaleY);
+
+        this.origW = origW;
+        this.origH = origH;
+        this.actW = actW;
+        this.actH = actH;
+        this.scaleX = scaleX;
+        this.scaleY = scaleY;
     }
+
 }
