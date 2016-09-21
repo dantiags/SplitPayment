@@ -1,29 +1,22 @@
 package com.aycron.mobile.splitpayment;
 
 import android.annotation.SuppressLint;
+import android.app.ProgressDialog;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
-import android.graphics.Rect;
-import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.TextView;
-import android.widget.Toast;
 
-import com.aycron.mobile.splitpayment.helpers.LocalGoogleOCRHelper;
-import com.aycron.mobile.splitpayment.tasks.ProcessImageTask;
-import com.google.android.gms.vision.text.TextBlock;
+import com.aycron.mobile.splitpayment.helpers.GoogleVisionHelper;
 import com.google.api.services.vision.v1.model.EntityAnnotation;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -134,18 +127,6 @@ public class FullImageActivity extends AppCompatActivity implements View.OnClick
         btnProcessImage.setOnTouchListener(mDelayHideTouchListener);
         btnProcessImage.setOnClickListener(this);
 
-        doTheAutoRefresh();
-
-    }
-
-    private void doTheAutoRefresh() {
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                // Write code for your refresh logic
-                doTheAutoRefresh();
-            }
-        }, 5000);
     }
 
     @Override
@@ -232,6 +213,48 @@ public class FullImageActivity extends AppCompatActivity implements View.OnClick
         this.textResponses = textResponses;
         mContentView.setTextResponses(textResponses);
         mContentView.invalidate();
+    }
+
+
+    //Async Task
+
+    class ProcessImageTask extends AsyncTask<Object, Void, String> {
+
+        private Exception exception;
+        private FullImageActivity activity;
+        private ProgressDialog pdia;
+
+        @Override
+        protected void onPreExecute(){
+            super.onPreExecute();
+            pdia = new ProgressDialog(FullImageActivity.this);
+            pdia.setMessage("Loading...");
+            pdia.show();
+        }
+
+
+        protected String doInBackground(Object... params) {
+            String result;
+            try {
+                this.activity = (FullImageActivity)params[0];
+                String path = (String) params[1];
+                result = GoogleVisionHelper.ProcessImage(this.activity, path);
+            } catch (Exception e) {
+                this.exception = e;
+
+                return null;
+            }
+            return result;
+        }
+
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+            pdia.dismiss();
+            if(this.exception == null){
+                //this.text.setText(result);
+                //String candidateLines = TicketHelper.extractLines(result);
+            }
+        }
     }
 
 }
