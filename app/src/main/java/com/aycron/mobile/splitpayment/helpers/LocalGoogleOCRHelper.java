@@ -46,7 +46,7 @@ public class LocalGoogleOCRHelper {
 
 
 
-        activity.setLocalTextResponses(filteredResponses);
+        //activity.setLocalTextResponses(filteredResponses);
     }
 
     public static SparseArray<TextBlock> GetRecognizedText(Activity activity, Bitmap myBitmap){

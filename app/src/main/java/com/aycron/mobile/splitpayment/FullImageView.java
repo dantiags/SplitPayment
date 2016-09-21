@@ -7,20 +7,16 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.Point;
-import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.widget.ImageView;
 
-import com.google.android.gms.vision.text.TextBlock;
 import com.google.api.services.vision.v1.model.BoundingPoly;
 import com.google.api.services.vision.v1.model.EntityAnnotation;
 import com.google.api.services.vision.v1.model.Vertex;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,7 +26,6 @@ import java.util.List;
 public class FullImageView extends ImageView {
 
     private List<EntityAnnotation> textResponses = new ArrayList<>();
-    private List<TextBlock> localTextResponses = new ArrayList<>();
 
     private int origW = 0;
     private int origH = 0;
@@ -57,10 +52,6 @@ public class FullImageView extends ImageView {
 
     public void setTextResponses(List<EntityAnnotation> textResponses) {
         this.textResponses = textResponses;
-    }
-
-    public void setLocalTextResponses(List<TextBlock> localTextResponses) {
-        this.localTextResponses = localTextResponses;
     }
 
 
@@ -106,10 +97,6 @@ public class FullImageView extends ImageView {
             drawTextResponsesBlocks(canvas, paint, positionX, positionY, deltaX, deltaY, textBox);
         }
 
-        for (TextBlock textBox : localTextResponses ) {
-            drawLocalTextResponsesBlocks(canvas, paint, positionX, positionY, deltaX, deltaY, textBox);
-        }
-
     }
 
     private void drawTextResponsesBlocks(Canvas canvas, Paint paint, Float positionX, Float positionY, Float deltaX, Float deltaY, EntityAnnotation textBox) {
@@ -130,27 +117,12 @@ public class FullImageView extends ImageView {
         wallpath.lineTo((Float.parseFloat(v4.getX().toString())  * deltaX) + positionX, (Float.parseFloat(v4.getY().toString()) * deltaY)+ positionY);
         wallpath.lineTo((Float.parseFloat(v1.getX().toString())  * deltaX) + positionX, (Float.parseFloat(v1.getY().toString()) * deltaY)+ positionY);
 
-        canvas.drawPath(wallpath, paint);
-    }
-
-
-    private void drawLocalTextResponsesBlocks(Canvas canvas, Paint paint, Float positionX, Float positionY, Float deltaX, Float deltaY, TextBlock textBox) {
-        String textString = textBox.getValue();
-        Point[] points = textBox.getCornerPoints();
-        Point v1 = points[0];
-        Point v2 = points[1];
-        Point v3 = points[2];
-        Point v4 = points[3];
-
-        Path wallpath = new Path();
-        wallpath.reset(); // only needed when reusing this path for a new build
-        wallpath.moveTo(((float) v1.x  * deltaX) + positionX, ((float) v1.y * deltaY) + positionY);
-        wallpath.lineTo(((float) v2.x  * deltaX) + positionX, ((float) v2.y * deltaY) + positionY);
-        wallpath.lineTo(((float) v3.x  * deltaX) + positionX, ((float) v3.y * deltaY) + positionY);
-        wallpath.lineTo(((float) v4.x  * deltaX) + positionX, ((float) v4.y * deltaY) + positionY);
-        wallpath.lineTo(((float) v1.x  * deltaX) + positionX, ((float) v1.y * deltaY) + positionY);
-
-        canvas.drawPath(wallpath, paint);
+        //Only Draw the right ones...
+        float middle = this.actW/2;
+        float position1 = (Float.parseFloat(v1.getX().toString())  * deltaX) + positionX;
+        if(position1 > middle) {
+            canvas.drawPath(wallpath, paint);
+        }
     }
 
 

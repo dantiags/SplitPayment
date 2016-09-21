@@ -53,9 +53,7 @@ public class FullImageActivity extends AppCompatActivity implements View.OnClick
     private FullImageView mContentView;
     private String selectedImagePath;
     private List<EntityAnnotation> textResponses;
-    private List<TextBlock> localTextResponses;
     private Button btnProcessImage;
-    private Button btnImageProcessLocal;
     private final Handler handler = new Handler();
 
     private final Runnable mHidePart2Runnable = new Runnable() {
@@ -135,10 +133,6 @@ public class FullImageActivity extends AppCompatActivity implements View.OnClick
         btnProcessImage =  (Button)  findViewById(R.id.btnImageProcess);
         btnProcessImage.setOnTouchListener(mDelayHideTouchListener);
         btnProcessImage.setOnClickListener(this);
-
-        btnImageProcessLocal = (Button) findViewById(R.id.btnImageProcessLocal);
-        btnImageProcessLocal.setOnTouchListener(mDelayHideTouchListener);
-        btnImageProcessLocal.setOnClickListener(this);
 
         doTheAutoRefresh();
 
@@ -229,11 +223,6 @@ public class FullImageActivity extends AppCompatActivity implements View.OnClick
                 new ProcessImageTask().execute(params);
                 break;
 
-            case R.id.btnImageProcessLocal:
-                Bitmap bitmapPhoto = BitmapFactory.decodeFile(this.selectedImagePath);
-                bitmapPhoto = fixOrientation(90, bitmapPhoto);
-                LocalGoogleOCRHelper.ProcessImage(this, bitmapPhoto);
-                break;
         }
 
     }
@@ -242,17 +231,7 @@ public class FullImageActivity extends AppCompatActivity implements View.OnClick
     public void setTextResponses(List<EntityAnnotation> textResponses) {
         this.textResponses = textResponses;
         mContentView.setTextResponses(textResponses);
-        mContentView.setLocalTextResponses(new ArrayList<TextBlock>());
         mContentView.invalidate();
     }
-
-    public void setLocalTextResponses(List<TextBlock> textResponses) {
-        this.localTextResponses = textResponses;
-        mContentView.setLocalTextResponses(textResponses);
-        mContentView.setTextResponses(new ArrayList<EntityAnnotation>());
-        mContentView.invalidate();
-    }
-
-
 
 }
