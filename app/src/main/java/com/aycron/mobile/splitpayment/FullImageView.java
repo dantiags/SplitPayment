@@ -13,6 +13,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.widget.ImageView;
 
+import com.aycron.mobile.splitpayment.graphics.SelectionTag;
 import com.google.api.services.vision.v1.model.BoundingPoly;
 import com.google.api.services.vision.v1.model.EntityAnnotation;
 import com.google.api.services.vision.v1.model.Vertex;
@@ -26,6 +27,7 @@ import java.util.List;
 public class FullImageView extends ImageView {
 
     private List<EntityAnnotation> textResponses = new ArrayList<>();
+    private List<SelectionTag> tags = new ArrayList<>();
 
     private int origW = 0;
     private int origH = 0;
@@ -36,6 +38,10 @@ public class FullImageView extends ImageView {
 
     private float scaleX = 0f;
     private float scaleY = 0f;
+
+
+    private double drawLeft = 0;
+    private double drawTop = 0;
 
 
     public FullImageView(Context context) {
@@ -69,8 +75,6 @@ public class FullImageView extends ImageView {
         double bitmapRatio  = ((double)bitmap.getWidth())/bitmap.getHeight();
         double imageViewRatio  = ((double)this.getWidth())/this.getHeight();
 
-        double drawLeft = 0;
-        double drawTop = 0;
         double drawHeight = 0;
         double drawWidth = 0;
 
@@ -97,6 +101,15 @@ public class FullImageView extends ImageView {
             drawTextResponsesBlocks(canvas, paint, positionX, positionY, deltaX, deltaY, textBox);
         }
 
+        for (SelectionTag tag : this.tags ) {
+
+            Paint circlePaint = new Paint();
+            circlePaint.setColor(Color.BLUE);
+            circlePaint.setStyle(Paint.Style.FILL);
+            circlePaint.setStrokeWidth(5);
+            canvas.drawCircle(tag.getX(), tag.getY(), 30, circlePaint);
+        }
+
     }
 
     private void drawTextResponsesBlocks(Canvas canvas, Paint paint, Float positionX, Float positionY, Float deltaX, Float deltaY, EntityAnnotation textBox) {
@@ -109,18 +122,27 @@ public class FullImageView extends ImageView {
         Vertex v3 = vertices.get(2);
         Vertex v4 = vertices.get(3);
 
-        Path wallpath = new Path();
-        wallpath.reset(); // only needed when reusing this path for a new build
-        wallpath.moveTo((Float.parseFloat(v1.getX().toString())  * deltaX) + positionX, (Float.parseFloat(v1.getY().toString()) * deltaY)+ positionY);
-        wallpath.lineTo((Float.parseFloat(v2.getX().toString())  * deltaX) + positionX, (Float.parseFloat(v2.getY().toString()) * deltaY)+ positionY);
-        wallpath.lineTo((Float.parseFloat(v3.getX().toString())  * deltaX) + positionX, (Float.parseFloat(v3.getY().toString()) * deltaY)+ positionY);
-        wallpath.lineTo((Float.parseFloat(v4.getX().toString())  * deltaX) + positionX, (Float.parseFloat(v4.getY().toString()) * deltaY)+ positionY);
-        wallpath.lineTo((Float.parseFloat(v1.getX().toString())  * deltaX) + positionX, (Float.parseFloat(v1.getY().toString()) * deltaY)+ positionY);
-
         //Only Draw the right ones...
         float middle = this.actW/2;
-        float position1 = (Float.parseFloat(v1.getX().toString())  * deltaX) + positionX;
-        if(position1 > middle) {
+        float position1x = (Float.parseFloat(v1.getX().toString())  * deltaX) + positionX;
+        float  position1y = (Float.parseFloat(v1.getY().toString()) * deltaY)+ positionY;
+        float  position2x = (Float.parseFloat(v2.getX().toString()) * deltaX) + positionX;
+        float  position2y = (Float.parseFloat(v2.getY().toString()) * deltaY)+ positionY;
+        float  position3x = (Float.parseFloat(v3.getX().toString()) * deltaX) + positionX;
+        float  position3y = (Float.parseFloat(v3.getY().toString()) * deltaY)+ positionY;
+        float  position4x = (Float.parseFloat(v4.getX().toString()) * deltaX) + positionX;
+        float  position4y = (Float.parseFloat(v4.getY().toString()) * deltaY)+ positionY;
+
+        if(position1x > middle) {
+
+            Path wallpath = new Path();
+            wallpath.reset(); // only needed when reusing this path for a new build
+            wallpath.moveTo(position1x, position1y);
+            wallpath.lineTo(position2x, position2y);
+            wallpath.lineTo(position3x, position3y);
+            wallpath.lineTo(position4x, position4y);
+            wallpath.lineTo(position1x, position1y);
+
             canvas.drawPath(wallpath, paint);
         }
     }
@@ -155,6 +177,65 @@ public class FullImageView extends ImageView {
         this.actH = actH;
         this.scaleX = scaleX;
         this.scaleY = scaleY;
+    }
+
+    public EntityAnnotation isInside(float x, float y){
+        EntityAnnotation result = null;
+
+        for (EntityAnnotation textBox : textResponses) {
+            BoundingPoly poly = textBox.getBoundingPoly();
+            List<Vertex> vertices = poly.getVertices();
+
+            Vertex v1 = vertices.get(0);
+
+            float middle = this.actW/2;
+            double  position1x = (Float.parseFloat(v1.getX().toString())  * this.scaleX) + drawLeft;
+
+            if(position1x > middle) {
+                Vertex v3 = vertices.get(2);
+                double  position1y = (Float.parseFloat(v1.getY().toString()) * this.scaleY)+ drawTop;
+                double  position3x = (Float.parseFloat(v3.getX().toString()) * this.scaleX) + drawLeft;
+                double  position3y = (Float.parseFloat(v3.getY().toString()) * this.scaleY)+ drawTop;
+
+                //first...
+                if(x > position1x && x < position3x){
+                    if(y > position1y && y < position3y ){
+                        result = textBox;
+                    }
+                }
+
+            }
+
+        }
+
+        return result;
+    }
+
+    public void drawTag(EntityAnnotation textBox) {
+
+        BoundingPoly poly = textBox.getBoundingPoly();
+        List<Vertex> vertices = poly.getVertices();
+
+        Vertex v2 = vertices.get(1);
+        Vertex v3 = vertices.get(2);
+
+        double position2x = (Float.parseFloat(v2.getX().toString()) * this.scaleX) + drawLeft;
+        double position2y = (Float.parseFloat(v2.getY().toString()) * this.scaleY) + drawTop;
+        double position3x = (Float.parseFloat(v3.getX().toString()) * this.scaleX) + drawLeft;
+        double position3y = (Float.parseFloat(v3.getY().toString()) * this.scaleY) + drawTop;
+
+        SelectionTag tag = new SelectionTag();
+        int circleX = (int) position2x + 50;
+        tag.setX( circleX );
+
+        int circleY = (int) (position2y + ( (position3y - position2y) / 2));
+        tag.setY( circleY );
+
+        tag.setOwner("CD");
+
+        this.tags.add(tag);
+
+
     }
 
 }

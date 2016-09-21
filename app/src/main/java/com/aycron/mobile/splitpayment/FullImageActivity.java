@@ -23,7 +23,7 @@ import java.util.List;
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
-public class FullImageActivity extends AppCompatActivity implements View.OnClickListener {
+public class FullImageActivity extends AppCompatActivity implements View.OnClickListener, View.OnTouchListener {
     /**
      * Whether or not the system UI should be auto-hidden after
      * {@link #AUTO_HIDE_DELAY_MILLIS} milliseconds.
@@ -115,13 +115,8 @@ public class FullImageActivity extends AppCompatActivity implements View.OnClick
         Bitmap bitmapPhoto = BitmapFactory.decodeFile(selectedImagePath);
         bitmapPhoto = fixOrientation(90, bitmapPhoto);
         mContentView.setImageBitmap(bitmapPhoto);
-        // Set up the user interaction to manually show or hide the system UI.
-        mContentView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                toggle();
-            }
-        });
+        mContentView.setOnClickListener(this);
+        mContentView.setOnTouchListener(this);
 
         btnProcessImage =  (Button)  findViewById(R.id.btnImageProcess);
         btnProcessImage.setOnTouchListener(mDelayHideTouchListener);
@@ -204,6 +199,9 @@ public class FullImageActivity extends AppCompatActivity implements View.OnClick
                 new ProcessImageTask().execute(params);
                 break;
 
+            case R.id.fullScreenImage:
+                toggle();
+                break;
         }
 
     }
@@ -213,6 +211,26 @@ public class FullImageActivity extends AppCompatActivity implements View.OnClick
         this.textResponses = textResponses;
         mContentView.setTextResponses(textResponses);
         mContentView.invalidate();
+    }
+
+    @Override
+    public boolean onTouch(View view, MotionEvent motionEvent) {
+        switch (view.getId()){
+
+            case R.id.fullScreenImage:
+
+                float x = motionEvent.getRawX();
+                float y = motionEvent.getRawY();
+                EntityAnnotation e = this.mContentView.isInside(x,y);
+
+                if(e != null){
+                   this.mContentView.drawTag(e);
+                }
+
+                break;
+        }
+        return false;
+
     }
 
 
