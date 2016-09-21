@@ -42,12 +42,12 @@ public class FullImageActivity extends AppCompatActivity implements View.OnClick
      */
     private static final int UI_ANIMATION_DELAY = 300;
     private final Handler mHideHandler = new Handler();
-
     private FullImageView mContentView;
     private String selectedImagePath;
     private List<EntityAnnotation> textResponses;
     private Button btnProcessImage;
-    private final Handler handler = new Handler();
+    private static final int ACTION_PROCESS_IMAGE = 1000;
+    private static final int ACTION_SET_TAG = 2000;
 
     private final Runnable mHidePart2Runnable = new Runnable() {
         @SuppressLint("InlinedApi")
@@ -99,7 +99,6 @@ public class FullImageActivity extends AppCompatActivity implements View.OnClick
             return false;
         }
     };
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -195,7 +194,7 @@ public class FullImageActivity extends AppCompatActivity implements View.OnClick
         switch (view.getId()){
 
             case R.id.btnImageProcess:
-                Object[] params = {this,selectedImagePath};
+                Object[] params = {this, ACTION_PROCESS_IMAGE, selectedImagePath };
                 new ProcessImageTask().execute(params);
                 break;
 
@@ -213,20 +212,26 @@ public class FullImageActivity extends AppCompatActivity implements View.OnClick
         mContentView.invalidate();
     }
 
+
+    public void setTag(MotionEvent motionEvent) {
+        float x = motionEvent.getRawX();
+        float y = motionEvent.getRawY();
+
+        EntityAnnotation e = this.mContentView.isInside(x,y);
+
+        if(e != null){
+            this.mContentView.drawTag(e);
+        }
+        mContentView.invalidate();
+    }
+
     @Override
     public boolean onTouch(View view, MotionEvent motionEvent) {
         switch (view.getId()){
 
             case R.id.fullScreenImage:
-
-                float x = motionEvent.getRawX();
-                float y = motionEvent.getRawY();
-                EntityAnnotation e = this.mContentView.isInside(x,y);
-
-                if(e != null){
-                   this.mContentView.drawTag(e);
-                }
-
+                Object[] params = {this, ACTION_SET_TAG, motionEvent };
+                new ProcessImageTask().execute(params);
                 break;
         }
         return false;
@@ -252,11 +257,28 @@ public class FullImageActivity extends AppCompatActivity implements View.OnClick
 
 
         protected String doInBackground(Object... params) {
-            String result;
+            String result ="";
+
             try {
+
                 this.activity = (FullImageActivity)params[0];
-                String path = (String) params[1];
-                result = GoogleVisionHelper.ProcessImage(this.activity, path);
+                int action =  (int)params[1];
+
+                switch (action){
+
+                    case ACTION_PROCESS_IMAGE:
+
+                        String path = (String) params[2];
+                        result = GoogleVisionHelper.ProcessImage(this.activity, path);
+                        break;
+
+                    case ACTION_SET_TAG:
+
+                        MotionEvent motionEvent = (MotionEvent) params[2];
+                        this.activity.setTag(motionEvent);
+                        break;
+                }
+
             } catch (Exception e) {
                 this.exception = e;
 
